@@ -1,0 +1,32 @@
+<uniparc xmlns="http://uniprot.org/uniparc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://uniprot.org/uniparc http://www.uniprot.org/docs/uniparc.xsd" version="2018_10">
+<entry dataset="uniparc">
+<accession>UPI000B5797F0</accession>
+<dbReference type="UniProtKB/TrEMBL" id="A0A1Y5F828" version_i="1" active="Y" version="1" created="2017-08-30" last="2018-11-07">
+<property type="NCBI_taxonomy_id" value="97084"/>
+<property type="protein_name" value="Uncharacterized protein"/>
+<property type="gene_name" value="A9Q84_11920"/>
+</dbReference>
+<dbReference type="EMBLWGS" id="OUR97033" version_i="1" active="Y" version="1" created="2017-07-27" last="2018-05-25">
+<property type="NCBI_taxonomy_id" value="97084"/>
+<property type="protein_name" value="hypothetical protein"/>
+<property type="gene_name" value="A9Q84_11920"/>
+</dbReference>
+<sequence length="459" checksum="958B53035DCB5C81">
+MNFKSVKLFSLALIIGLQTNVFGFGKDRIKKFDWNGIEVTYLEDNRFPIYQAMIHFSDGS LSDHPKRRGETSMMFDLIDSGTRRYSQKDISDNLEFFGTSWGAYVTHESTVFEVSGLAKD LTPTMKKICHLFKDATFTKKEMNKYKRLFRNSARSAVNNHSLVASKAFREISLGNTPYSY PVAGKVKDIKKIHTKDLKRKLRYFNENVKKKIYLTGPSSILSLKNIITKDCLWKGSSDNY ARILTYKPKKVLKKPEIFIVTVPKANQAQIRFGRFLNQGEYENQELNSLSSEFLGGGFTS KLMREIRVKRGLSYTVSAYAGGQRQYGRSVISTFTKMKTVEELLDVVKNVLNEVKDKGVD ESEIKRAKGALSGSFPFRFEKGSAYLQQLMHLDDINKSYDTLYKFPKIVNAFSNKDVQAN ISSLFNWNNQTIVIVGPKSLAKRLKKYGKVKVKSYKQFF
+</sequence>
+<signatureSequenceMatch database="Pfam" id="PF00675">
+<ipr id="IPR011765" name="Peptidase M16, N-terminal"/>
+<lcn start="53" end="179"/>
+</signatureSequenceMatch>
+<signatureSequenceMatch database="Pfam" id="PF05193">
+<ipr id="IPR007863" name="Peptidase M16, C-terminal"/>
+<lcn start="246" end="370"/>
+</signatureSequenceMatch>
+<signatureSequenceMatch database="SUPFAM" id="SSF63411">
+<ipr id="IPR011249" name="Metalloenzyme, LuxS/M16 peptidase-like"/>
+<lcn start="35" end="202"/>
+<lcn start="252" end="439"/>
+</signatureSequenceMatch>
+</entry>
+<copyright>UniProt Consortium 2002-2018</copyright>
+</uniparc>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<taxonSet>
+<taxon scientificName="root" taxId="1" hidden="true" taxonomicDivision="UNC" geneticCode="1">
+        <children>
+            <taxon scientificName="other sequences" taxId="28384"></taxon>
+            <taxon scientificName="cellular organisms" taxId="131567"></taxon>
+            <taxon scientificName="Viruses" taxId="10239" rank="superkingdom"></taxon>
+            <taxon scientificName="unclassified sequences" taxId="12908"></taxon>
+            <taxon scientificName="Viroids" taxId="12884" rank="superkingdom"></taxon>
+        </children>
+        <synonym type="synonym" name="all"></synonym>
+    </taxon>
+<taxon scientificName="Bacteria" commonName="eubacteria" taxId="2" parentTaxId="131567" rank="superkingdom" hidden="false" taxonomicDivision="PRO" g
+eneticCode="11">
+        <lineage>
+            <taxon scientificName="cellular organisms" taxId="131567" hidden="true"></taxon>
+            <taxon scientificName="root" taxId="1" hidden="true"></taxon>
+        </lineage>
+        <children>
+            <taxon scientificName="Proteobacteria" taxId="1224" rank="phylum"></taxon>
+            <taxon scientificName="Acidobacteria" taxId="57723" rank="phylum"></taxon>
+            <taxon scientificName="Terrabacteria group" taxId="1783272"></taxon>
+            <taxon scientificName="Synergistetes" taxId="508458" rank="phylum"></taxon>
+            <taxon scientificName="Thermotogae" taxId="200918" rank="phylum"></taxon>
+            <taxon scientificName="Caldiserica" taxId="67814" rank="phylum"></taxon>
+            <taxon scientificName="Deferribacteres" taxId="200930" rank="phylum"></taxon>
+            <taxon scientificName="unclassified Bacteria" taxId="2323"></taxon>
+            <taxon scientificName="Dictyoglomi" taxId="68297" rank="phylum"></taxon>
+            <taxon scientificName="Chrysiogenetes" taxId="200938" rank="phylum"></taxon>
+            <taxon scientificName="Nitrospinae/Tectomicrobia group" taxId="1802340"></taxon>
+            <taxon scientificName="Spirochaetes" taxId="203691" rank="phylum"></taxon>
+            <taxon scientificName="Aquificae" taxId="200783" rank="phylum"></taxon>
+            <taxon scientificName="Fusobacteria" taxId="32066" rank="phylum"></taxon>
+            <taxon scientificName="Elusimicrobia" taxId="74152" rank="phylum"></taxon>
+            <taxon scientificName="PVC group" taxId="1783257"></taxon>
+            <taxon scientificName="environmental samples" taxId="48479"></taxon>
+            <taxon scientificName="Nitrospirae" taxId="40117" rank="phylum"></taxon>
+            <taxon scientificName="Calditrichaeota" taxId="1930617" rank="phylum"></taxon>
+            <taxon scientificName="FCB group" taxId="1783270"></taxon>
+            <taxon scientificName="Thermodesulfobacteria" taxId="200940" rank="phylum"></taxon>
+        </children>
+    </taxon>
+</taxonSet>
