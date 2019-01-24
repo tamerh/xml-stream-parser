@@ -234,3 +234,41 @@ func TestBooks2Xml(t *testing.T) {
 	}
 
 }
+
+// this test must throw panic
+func TestBooksInvalidXml(t *testing.T) {
+
+	var resultChannel = make(chan XMLEntry)
+
+	file, _ := os.Open("books_invalid.xml")
+	defer file.Close()
+
+	br := bufio.NewReader(file)
+
+	var parser = XMLParser{
+		R:          br,
+		LoopTag:    "book",
+		OutChannel: &resultChannel,
+		SkipTags:   []string{"description"},
+	}
+
+	go func() {
+		defer func() {
+			if r := recover(); r == nil {
+				panic("The code did not panic")
+			} else {
+				os.Exit(0)
+			}
+		}()
+		parser.Parse()
+	}()
+
+	for book := range resultChannel {
+
+		// print ISBN value
+		isbn := book.Attrs["ISBN"]
+		fmt.Println(isbn)
+
+	}
+
+}

@@ -237,6 +237,11 @@ func (x *XMLParser) getElementTree(tag *xmlTag, result *XMLElement) *XMLElement 
 
 	for {
 		c = x.read()
+
+		if c == eof {
+			panic("Error while parsing. Check your xml is valid.")
+		}
+
 		if c == elementOpen {
 
 			n = x.read()
@@ -346,8 +351,7 @@ func (x *XMLParser) startTag() *xmlTag {
 	for {
 		c = x.read()
 		if c == eof {
-			///TODO return error.
-			//return
+			panic("Error while parsing. Check your xml is valid.")
 		}
 		if x.isWS(c) { //form2
 			tagname = string(s)
@@ -391,8 +395,7 @@ func (x *XMLParser) startTag() *xmlTag {
 			break
 		}
 		if c == eof {
-			///x.exit()? TODO
-			///return
+			panic("Error while parsing. Check your xml is valid.")
 		}
 		prevRune = c
 	}
