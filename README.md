@@ -1,7 +1,5 @@
 ## XML Stream Parser for GO
-xml-stream-parser is a GO library to parse xml files effectively. It is written to addres the performance [issue](https://github.com/golang/go/issues/21823) in default xml package when that issue is resolved you can skip this library.
-
-Right now it requires to write a bit too much code to parse which will be simplified but it is working faster compare to default xml package. It also works with very low memory footprint. This library used in my [project](https://github.com/tamerh/biobtree) with large xml files like size of more than 100GB. Feel free to create a issue if you found.
+xml-stream-parser is a GO library to parse xml files. It is written to addres the performance [issue](https://github.com/golang/go/issues/21823) in default xml package.
 
 ### Install
 
