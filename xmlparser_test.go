@@ -13,39 +13,20 @@ import (
 
 func TestGzXml(t *testing.T) {
 
-	var resultChannel = make(chan XMLEntry)
+	start := time.Now()
 
-	var wg sync.WaitGroup
-
-	wg.Add(1)
 	file, _ := os.Open("uniprot_test.xml.gz")
 
 	defer file.Close()
 
-	gz, err := gzip.NewReader(file)
-
-	if err != nil {
-		fmt.Println("Error,", err)
-	}
+	gz, _ := gzip.NewReader(file)
 
 	br := bufio.NewReader(gz)
 
-	var parser = XMLParser{
-		R:          br,
-		LoopTag:    "entry",
-		OutChannel: &resultChannel,
-		SkipTags:   []string{"comment", "gene", "protein", "feature", "sequence"},
-	}
-
-	start := time.Now()
-	fmt.Println("Started...")
-	go func() {
-		parser.Parse()
-		wg.Done()
-	}()
+	p := NewXmlParser(br, "entry").SkipTags([]string{"comment", "gene", "protein", "feature", "sequence"})
 
 	totalentry := 0
-	for range resultChannel {
+	for range *p.Stream() {
 		totalentry++
 	}
 
@@ -60,23 +41,15 @@ func TestGzXml(t *testing.T) {
 
 func TestXml(t *testing.T) {
 
-	var resultChannel = make(chan XMLEntry)
-
 	file, _ := os.Open("books.xml")
 	defer file.Close()
 
 	br := bufio.NewReader(file)
 
-	var parser = XMLParser{
-		R:          br,
-		LoopTag:    "book",
-		OutChannel: &resultChannel,
-	}
-
-	go parser.Parse()
+	p := NewXmlParser(br, "book")
 
 	var resultEntryCount int
-	for range resultChannel {
+	for range *p.Stream() {
 		resultEntryCount++
 	}
 
@@ -88,23 +61,15 @@ func TestXml(t *testing.T) {
 
 func TestXmlUniref(t *testing.T) {
 
-	var resultChannel = make(chan XMLEntry)
-
 	file, _ := os.Open("uniref.xml")
 	defer file.Close()
 
 	br := bufio.NewReader(file)
 
-	var parser = XMLParser{
-		R:          br,
-		LoopTag:    "entry",
-		OutChannel: &resultChannel,
-	}
-
-	go parser.Parse()
+	p := NewXmlParser(br, "entry")
 
 	var resultEntryCount int
-	for range resultChannel {
+	for range *p.Stream() {
 		resultEntryCount++
 	}
 
@@ -116,48 +81,30 @@ func TestXmlUniref(t *testing.T) {
 
 func TestArticleXml(t *testing.T) {
 
-	var resultChannel = make(chan XMLEntry)
-
 	file, _ := os.Open("article.xml")
 	defer file.Close()
 
 	br := bufio.NewReader(file)
 
-	var parser = XMLParser{
-		R:          br,
-		LoopTag:    "article-meta",
-		OutChannel: &resultChannel,
-	}
+	p := NewXmlParser(br, "article-meta")
 
-	go parser.Parse()
-
-	for entry := range resultChannel {
+	for entry := range *p.Stream() {
 		if len(entry.Elements["article-id"]) != 3 {
 			panic("Article should have 3 article id  ")
 		}
-
 	}
 
 }
 
 func TestTaxonomyXml(t *testing.T) {
 
-	var resultChannel = make(chan XMLEntry)
-
 	file, _ := os.Open("taxonomy.xml")
 	defer file.Close()
 
 	br := bufio.NewReader(file)
+	p := NewXmlParser(br, "taxon")
 
-	var parser = XMLParser{
-		R:          br,
-		LoopTag:    "taxon",
-		OutChannel: &resultChannel,
-	}
-
-	go parser.Parse()
-
-	for entry := range resultChannel {
+	for entry := range *p.Stream() {
 		fmt.Println(entry)
 	}
 
@@ -165,24 +112,15 @@ func TestTaxonomyXml(t *testing.T) {
 
 func TestHmdb(t *testing.T) {
 
-	var resultChannel = make(chan XMLEntry)
-
 	file, _ := os.Open("hmdb.xml")
 	defer file.Close()
 
 	br := bufio.NewReader(file)
 
-	var parser = XMLParser{
-		R:          br,
-		LoopTag:    "metabolite",
-		SkipTags:   []string{"taxonomy,ontology"},
-		OutChannel: &resultChannel,
-	}
-
-	go parser.Parse()
+	p := NewXmlParser(br, "metabolite").SkipTags([]string{"taxonomy", "ontology"})
 
 	entrycount := 0
-	for range resultChannel {
+	for range *p.Stream() {
 		entrycount++
 	}
 
@@ -194,23 +132,14 @@ func TestHmdb(t *testing.T) {
 
 func TestBooks2Xml(t *testing.T) {
 
-	var resultChannel = make(chan XMLEntry)
-
 	file, _ := os.Open("books2.xml")
 	defer file.Close()
 
 	br := bufio.NewReader(file)
 
-	var parser = XMLParser{
-		R:          br,
-		LoopTag:    "book",
-		OutChannel: &resultChannel,
-		SkipTags:   []string{"description"},
-	}
+	p := NewXmlParser(br, "book").SkipTags([]string{"description"})
 
-	go parser.Parse()
-
-	for book := range resultChannel {
+	for book := range *p.Stream() {
 
 		// print ISBN value
 		isbn := book.Attrs["ISBN"]
@@ -238,20 +167,15 @@ func TestBooks2Xml(t *testing.T) {
 // this test must throw panic
 func TestBooksInvalidXml(t *testing.T) {
 
-	var resultChannel = make(chan XMLEntry)
-
 	file, _ := os.Open("books_invalid.xml")
 	defer file.Close()
 
 	br := bufio.NewReader(file)
 
-	var parser = XMLParser{
-		R:          br,
-		LoopTag:    "book",
-		OutChannel: &resultChannel,
-		SkipTags:   []string{"description"},
-	}
+	p := NewXmlParser(br, "book").SkipTags([]string{"description"})
 
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
 		defer func() {
 			if r := recover(); r == nil {
@@ -259,16 +183,13 @@ func TestBooksInvalidXml(t *testing.T) {
 			} else {
 				os.Exit(0)
 			}
+			wg.Wait()
 		}()
-		parser.Parse()
+
 	}()
 
-	for book := range resultChannel {
-
-		// print ISBN value
-		isbn := book.Attrs["ISBN"]
-		fmt.Println(isbn)
-
+	for range *p.Stream() {
 	}
+	wg.Done()
 
 }

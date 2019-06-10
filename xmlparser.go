@@ -2,7 +2,6 @@ package xmlparser
 
 import (
 	"bufio"
-	"fmt"
 )
 
 const (
@@ -17,24 +16,11 @@ const slash rune = '/'
 const equal = '='
 const quote = '"'
 
-/*
-XMLParser parser/scrapper of xml file
-For more improvment following can be done
-1- skip tags inside the element for now a tag can be skipped only root element of looptag
-2- to make it more parallel maybe first just get the looptag content and send it for processing.
-3- change slices size and append if applicabale.
-*/
 type XMLParser struct {
-	R             *bufio.Reader
-	LoopTag       string
-	OutChannel    *chan XMLEntry
-	SkipTags      []string
-	FinishMessage string
-	//	ProgBar       *mpb.Bar
-	//	ProgByEntry   bool
-	//	ProgBySize    bool
-	//internal
-	skipTagNames    map[string]bool
+	reader          *bufio.Reader
+	loopTag         string
+	resultChannel   chan *XMLEntry
+	skipTags        map[string]bool
 	state           int
 	totalParsed     uint32
 	progSizeCounter int32
@@ -53,6 +39,7 @@ XMLEntry is a result of each parsed loop
 type XMLEntry struct {
 	Attrs    map[string]string
 	Elements map[string][]XMLElement
+	Err      error
 }
 
 /*
@@ -68,17 +55,45 @@ const errorMsg = "Parsing error check if document is valid or contact for help."
 const errorMsg2 = " tag is not properly closed."
 const errorMsg3 = "Main loop tag must have element inside."
 
+func NewXmlParser(reader *bufio.Reader, loopTag string) *XMLParser {
+
+	x := &XMLParser{
+		reader:        reader,
+		loopTag:       loopTag,
+		resultChannel: make(chan *XMLEntry, 256),
+		skipTags:      map[string]bool{},
+	}
+	return x
+}
+
+func (x *XMLParser) SkipTags(skipTags []string) *XMLParser {
+
+	if len(skipTags) > 0 {
+		for _, s := range skipTags {
+			x.skipTags[s] = true
+		}
+	}
+	return x
+
+}
+
+func (x *XMLParser) Stream() *chan *XMLEntry {
+
+	go x.parse()
+
+	return &x.resultChannel
+
+}
+
 /*
 Parse starts parsing xml document
 */
-func (x *XMLParser) Parse() {
+func (x *XMLParser) parse() {
 
-	x.init()
+	defer close(x.resultChannel)
 	var c, n rune
 	var entry *XMLEntry
-	//start := time.Now()
-	//progresEntryCount := 0
-	//maxProgressEntry := 1000
+
 	for {
 
 		switch x.state {
@@ -89,23 +104,12 @@ func (x *XMLParser) Parse() {
 				c = x.read()
 
 				if c == eof {
-					// finish
-					if len(x.FinishMessage) > 0 {
-						fmt.Println("Parsing done ", x.FinishMessage, " total parsed ->", x.totalParsed)
-					}
-
-					/**
-					if x.ProgBar != nil {
-						x.ProgBar.IncrBy(progresEntryCount)
-					}
-					**/
-					close(*x.OutChannel)
 					return
 				}
 
 				if c == elementOpen {
 					atag := x.startTag()
-					if atag.name == x.LoopTag {
+					if atag.name == x.loopTag {
 						if atag.specialClose { // maybe main loop only has attribute???
 							panic(errorMsg3 + "\n" + errorMsg)
 						}
@@ -126,17 +130,6 @@ func (x *XMLParser) Parse() {
 				c = x.read()
 
 				if c == eof {
-					// exit completly
-					if len(x.FinishMessage) > 0 {
-						fmt.Println("Parsing done ", x.FinishMessage, " total parsed ->", x.totalParsed)
-					}
-					/**
-					if x.ProgBar != nil {
-						x.ProgBar.IncrBy(progresEntryCount)
-					}
-					**/
-
-					close(*x.OutChannel)
 					return
 				}
 				if c == elementOpen {
@@ -145,22 +138,11 @@ func (x *XMLParser) Parse() {
 					//first check that if loop tag is closing
 					if n == slash {
 						close := x.closeTagName()
-						if close == x.LoopTag {
+						if close == x.loopTag {
 							// loop tag is closing exit from this state
 							x.state = findLoopTag
-							*x.OutChannel <- *entry
-
-							/**
-							if x.ProgByEntry && progresEntryCount == maxProgressEntry {
-								progresEntryCount++
-								x.ProgBar.IncrBy(progresEntryCount)
-								progresEntryCount = 0
-							} else {
-								progresEntryCount++
-							}
-							**/
+							x.resultChannel <- entry
 							x.totalParsed++
-							//start = time.Now()
 							break
 						} else { //this means some other tag is being close in loop tag
 							continue
@@ -170,7 +152,7 @@ func (x *XMLParser) Parse() {
 					}
 
 					atag := x.startTag()
-					if _, ok := x.skipTagNames[atag.name]; !ok {
+					if _, ok := x.skipTags[atag.name]; !ok {
 
 						// build element tree.
 						childs := map[string][]XMLElement{}
@@ -203,29 +185,6 @@ func (x *XMLParser) Parse() {
 		}
 
 	}
-
-}
-
-func (x *XMLParser) init() {
-
-	if x.OutChannel == nil {
-		panic("Result channel is missing.")
-	}
-
-	x.skipTagNames = map[string]bool{}
-	for _, tag := range x.SkipTags {
-		x.skipTagNames[tag] = true
-	}
-
-	/**
-	if x.ProgByEntry && x.ProgBySize {
-		panic("progress bar must be based on either entry or size")
-	}
-
-	if x.ProgBar != nil && !x.ProgByEntry && !x.ProgBySize {
-		x.ProgByEntry = true // this is default
-	}
-	**/
 
 }
 
@@ -452,20 +411,8 @@ func (*XMLParser) isWS(in rune) bool {
 }
 
 func (x *XMLParser) read() rune {
-	ch, _, err := x.R.ReadRune()
+	ch, _, err := x.reader.ReadRune()
 
-	/**
-	if x.ProgBySize {
-
-		if x.progSizeCounter == 10000 { // to minimize the performance affect
-			x.ProgBar.IncrBy(10000)
-			x.progSizeCounter = 0
-		} else {
-			x.progSizeCounter++
-		}
-
-	}
-	**/
 	if err != nil {
 		return eof
 	}
@@ -473,7 +420,7 @@ func (x *XMLParser) read() rune {
 }
 
 func (x *XMLParser) unread() {
-	err := x.R.UnreadRune()
+	err := x.reader.UnreadRune()
 	if err != nil {
 		panic(errorMsg)
 	}
@@ -483,7 +430,7 @@ func (x *XMLParser) unreadSize(size int) {
 
 	for size == 0 {
 
-		err := x.R.UnreadRune()
+		err := x.reader.UnreadRune()
 		if err != nil {
 			panic(errorMsg)
 		}
