@@ -1,0 +1,5 @@
+<examples>
+  <tag1 att1="<att0>" att2="att0">
+    <tag11 att1="att0">InnerText110</tag11>
+    <tag11 att1="att0">InnerText111</tag11>
+    <tag12 att1="att0"/>

@@ -1,85 +1,65 @@
-## XML Stream Parser for GO
-xml-stream-parser is a GO library to parse xml files. It is written to addres the performance [issue](https://github.com/golang/go/issues/21823) in default xml package.
-
-### Install
-
-```
-go get -u github.com/tamerh/xml-stream-parser
-```
-
+## xml stream parser 
+xml-stream-parser is xml parser for GO. It is efficient to parse large xml data with streaming fashion. 
 
 ### Usage
-
-Let say you have following xml and you want to loop over book as a stream
-and parse various elements and attributes
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <bookstore>
-   <book ISBN="10-000000-001">
+   <book>
       <title>The Iliad and The Odyssey</title>
       <price>12.95</price>
       <comments>
          <userComment rating="4">Best translation I've read.</userComment>
          <userComment rating="2">I like other versions better.</userComment>
       </comments>
-      <description>Homer's two epics of the ancient world, The Iliad & The Odyssey, tell stories as riveting today as when they were written between the eighth and ninth century B.C.</description>
    </book>
-   <book ISBN="10-000000-999">
+   <book>
       <title>Anthology of World Literature</title>
       <price>24.95</price>
       <comments>
          <userComment rating="3">Needs more modern literature.</userComment>
          <userComment rating="4">Excellent overview of world literature.</userComment>
       </comments>
-      <description>The anthology includes epic and lyric poetry, drama, and prose narrative, with many complete works and a focus on the most influential pieces and authors from each region and time period.</description>
    </book>
 </bookstore>
 ```
 
-you can use the library like so
-
+<b>Stream</b> over books
 ```go
-//First open your file and create reader. You can also use gzip file check tests
-file, _ := os.Open("books2.xml")
-defer file.Close()
-br := bufio.NewReader(file)
+f, _ := os.Open("input.xml")
+br := bufio.NewReaderSize(f,8192)
+parser := pr.NewXmlParser(br, "books")
 
-// then create  following channel to read your parsed data from.
-var resultChannel = make(chan XMLEntry)
-
-// init parser
-var parser = XMLParser{
-R:          br, 
-// define tag to loop over
-LoopTag:    "book",
-OutChannel: &resultChannel,
-// you can skip tags that you are not interested it relatively speeds up the process
-SkipTags:   []string{"description"}, 
+for xml := range *parser.Stream() {
+	fmt.Println(xml.Childs["title"][0].InnerText)
+	fmt.Println(xml.Childs["comments"][0].Childs["userComment"][0].Attrs["rating"])
+	fmt.Println(xml.Childs["comments"][0].Childs["userComment"][0].InnerText)
 }
+   
+```
 
-// start parsing with a go routine
-go parser.Parse()
+<b>Skip</b> tags for speed
+```go
+parser := pr.NewXmlParser(br, "books").SkipElements([]string{"price", "comments"})
+```
 
-// and finally read parsed data 
-for book := range resultChannel {
-// print ISBN value
-isbn := book.Attrs["ISBN"]
-fmt.Println(isbn)
-
-// print title
-title := book.Elements["title"][0].InnerText
-fmt.Println(title)
-
-// print a user commet which has rating 4
-// basically you can walk on all the sub nodes if you have
-for _, userComments := range book.Elements["comments"][0].Childs {
-	for _, comment := range userComments {
-		if comment.Attrs["rating"] == "4" {
-			  // print the user comment
-			  fmt.Println(comment.InnerText)
-			}
-		}
-	}
+<b>Error</b> handlings
+```go
+for xml := range *parser.Stream() {
+   if xml.Err !=nil { 
+      // handle error
+   }
 }
 ```
+
+<b>Progress</b> of parsing
+```go
+// total byte read to calculate the progress of parsing
+parser.TotalReadSize
+```
+
+
+
+
+If you interested check also [json parser](https://github.com/tamerh/jsparser) which works similarly

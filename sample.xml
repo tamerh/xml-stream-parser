@@ -1,0 +1,25 @@
+<examples>
+    <tag1 att1="<att0>" att2="att0">
+        <tag11 att1="att0">InnerText110</tag11>
+        <tag11 att1="att0">InnerText111</tag11>
+        <tag12 att1="att0"/>
+        <tag13>InnerText13</tag13>
+        <!-- some comments <> "" '' -->
+        <tag14/>
+    </tag1>
+    <!-- some comments <> "" '' -->
+    <tag1 att1="<att1>" att2="att1">
+        <tag11 att1="att1">InnerText2</tag11>
+        <tag12 att1="att1"/>
+        <tag13>InnerText213</tag13>
+        <tag14 />
+    </tag1>
+    <tag2 att1="testattr<"/>
+    <tag2 att1="testattr<2"/>
+    <tag3>tag31</tag3>
+    <tag3 att1="testattr<2">tag32 </tag3>
+    <tag4 >        <!-- some comments <> "" '' -->
+        <tag11 att1="att0 ">InnerText0 </tag11>
+    </tag4 >
+    <quotetest att1='test' att2='test"' att3="test'"/>
+</examples>

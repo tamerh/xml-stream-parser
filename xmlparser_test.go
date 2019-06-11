@@ -2,194 +2,231 @@ package xmlparser
 
 import (
 	"bufio"
-	"compress/gzip"
-	"fmt"
-	"log"
 	"os"
-	"sync"
 	"testing"
-	"time"
 )
 
-func TestGzXml(t *testing.T) {
+func getparser(prop string) *XMLParser {
 
-	start := time.Now()
-
-	file, _ := os.Open("uniprot_test.xml.gz")
-
-	defer file.Close()
-
-	gz, _ := gzip.NewReader(file)
-
-	br := bufio.NewReader(gz)
-
-	p := NewXmlParser(br, "entry").SkipTags([]string{"comment", "gene", "protein", "feature", "sequence"})
-
-	totalentry := 0
-	for range *p.Stream() {
-		totalentry++
-	}
-
-	if totalentry != 2 {
-		panic("Expected result count is 2 but found ->" + string(totalentry))
-	}
-
-	elapsed := time.Since(start)
-	log.Printf("Binomial took %s", elapsed)
-
+	return getparserFile("sample.xml", prop)
 }
 
-func TestXml(t *testing.T) {
+func getparserFile(filename string, prop string) *XMLParser {
 
-	file, _ := os.Open("books.xml")
-	defer file.Close()
+	file, _ := os.Open(filename)
 
 	br := bufio.NewReader(file)
 
-	p := NewXmlParser(br, "book")
+	p := NewXmlParser(br, prop)
 
-	var resultEntryCount int
-	for range *p.Stream() {
-		resultEntryCount++
+	return p
+}
+
+func TestBasics(t *testing.T) {
+
+	p := getparser("tag1")
+
+	var results []*XMLElement
+	for xml := range *p.Stream() {
+		results = append(results, xml)
+	}
+	if len(results) != 2 {
+		panic("Test failed result must be 2")
 	}
 
-	if resultEntryCount != 12 {
-		panic("Expected result count is 12 but found ->" + string(resultEntryCount))
+	if len(results[0].Childs) != 4 || len(results[1].Childs) != 4 {
+		panic("Test failed")
+	}
+	// result 1
+	if results[0].Attrs["att1"] != "<att0>" || results[0].Attrs["att2"] != "att0" {
+		panic("Test failed")
+	}
+
+	if results[0].Childs["tag11"][0].Attrs["att1"] != "att0" {
+		panic("Test failed")
+	}
+
+	if results[0].Childs["tag11"][0].InnerText != "InnerText110" {
+		panic("Test failed")
+	}
+
+	if results[0].Childs["tag11"][1].InnerText != "InnerText111" {
+		panic("Test failed")
+	}
+
+	if results[0].Childs["tag12"][0].Attrs["att1"] != "att0" {
+		panic("Test failed")
+	}
+
+	if results[0].Childs["tag12"][0].InnerText != "" {
+		panic("Test failed")
+	}
+
+	if results[0].Childs["tag13"][0].Attrs != nil && results[0].Childs["tag13"][0].InnerText != "InnerText13" {
+		panic("Test failed")
+	}
+
+	if results[0].Childs["tag14"][0].Attrs != nil && results[0].Childs["tag14"][0].InnerText != "" {
+		panic("Test failed")
+	}
+
+	//result 2
+	if results[1].Attrs["att1"] != "<att1>" || results[1].Attrs["att2"] != "att1" {
+		panic("Test failed")
+	}
+
+	if results[1].Childs["tag11"][0].Attrs["att1"] != "att1" {
+		panic("Test failed")
+	}
+
+	if results[1].Childs["tag11"][0].InnerText != "InnerText2" {
+		panic("Test failed")
+	}
+
+	if results[1].Childs["tag12"][0].Attrs["att1"] != "att1" {
+		panic("Test failed")
+	}
+
+	if results[1].Childs["tag12"][0].InnerText != "" {
+		panic("Test failed")
+	}
+	if results[1].Childs["tag13"][0].Attrs != nil && results[1].Childs["tag13"][0].InnerText != "InnerText213" {
+		panic("Test failed")
+	}
+
+	if results[1].Childs["tag14"][0].Attrs != nil && results[1].Childs["tag14"][0].InnerText != "" {
+		panic("Test failed")
 	}
 
 }
 
-func TestXmlUniref(t *testing.T) {
+func TestTagWithNoChild(t *testing.T) {
 
-	file, _ := os.Open("uniref.xml")
-	defer file.Close()
+	p := getparser("tag2")
 
-	br := bufio.NewReader(file)
+	var results []*XMLElement
+	for xml := range *p.Stream() {
+		results = append(results, xml)
+	}
+	if len(results) != 2 {
+		panic("Test failed")
+	}
+	if results[0].Childs != nil || results[1].Childs != nil {
+		panic("Test failed")
+	}
+	if results[0].Attrs["att1"] != "testattr<" || results[1].Attrs["att1"] != "testattr<2" {
+		panic("Test failed")
+	}
+	// with inner text
+	p = getparser("tag3")
 
-	p := NewXmlParser(br, "entry")
-
-	var resultEntryCount int
-	for range *p.Stream() {
-		resultEntryCount++
+	results = results[:0]
+	for xml := range *p.Stream() {
+		results = append(results, xml)
 	}
 
-	if resultEntryCount != 1 {
-		panic("Expected result count is 1 but found ->" + string(resultEntryCount))
+	if len(results) != 2 {
+		panic("Test failed")
+	}
+	if results[0].Childs != nil || results[1].Childs != nil {
+		panic("Test failed")
+	}
+
+	if results[0].Attrs != nil || results[0].InnerText != "tag31" {
+		panic("Test failed")
+	}
+
+	if results[1].Attrs["att1"] != "testattr<2" || results[1].InnerText != "tag32 " {
+		panic("Test failed")
 	}
 
 }
 
-func TestArticleXml(t *testing.T) {
+func TestTagWithSpace(t *testing.T) {
 
-	file, _ := os.Open("article.xml")
-	defer file.Close()
+	p := getparser("tag4")
 
-	br := bufio.NewReader(file)
+	var results []*XMLElement
+	for xml := range *p.Stream() {
+		results = append(results, xml)
+	}
 
-	p := NewXmlParser(br, "article-meta")
+	if len(results) != 1 {
+		panic("Test failed")
+	}
 
-	for entry := range *p.Stream() {
-		if len(entry.Elements["article-id"]) != 3 {
-			panic("Article should have 3 article id  ")
+	if results[0].Childs["tag11"][0].Attrs["att1"] != "att0 " {
+		panic("Test failed")
+	}
+
+	if results[0].Childs["tag11"][0].InnerText != "InnerText0 " {
+		panic("Test failed")
+	}
+
+}
+
+func TestQuote(t *testing.T) {
+
+	p := getparser("quotetest")
+
+	var results []*XMLElement
+	for xml := range *p.Stream() {
+		results = append(results, xml)
+	}
+
+	if len(results) != 1 {
+		panic("Test failed")
+	}
+
+	if results[0].Attrs["att1"] != "test" || results[0].Attrs["att2"] != "test\"" || results[0].Attrs["att3"] != "test'" {
+		panic("Test failed")
+	}
+
+}
+
+func TestSkip(t *testing.T) {
+
+	p := getparser("tag1").SkipElements([]string{"tag11", "tag13"})
+
+	var results []*XMLElement
+	for xml := range *p.Stream() {
+		results = append(results, xml)
+	}
+
+	if len(results[0].Childs) != 2 {
+		panic("Test failed")
+	}
+
+	if len(results[1].Childs) != 2 {
+		panic("Test failed")
+	}
+
+	if results[0].Childs["tag11"] != nil {
+		panic("Test failed")
+	}
+
+	if results[0].Childs["tag13"] != nil {
+		panic("Test failed")
+	}
+
+	if results[1].Childs["tag11"] != nil {
+		panic("Test failed")
+	}
+
+	if results[1].Childs["tag13"] != nil {
+		panic("Test failed")
+	}
+
+}
+
+func TestError(t *testing.T) {
+
+	p := getparserFile("error.xml", "tag1")
+
+	for xml := range *p.Stream() {
+		if xml.Err == nil {
+			panic("It must give error")
 		}
 	}
-
-}
-
-func TestTaxonomyXml(t *testing.T) {
-
-	file, _ := os.Open("taxonomy.xml")
-	defer file.Close()
-
-	br := bufio.NewReader(file)
-	p := NewXmlParser(br, "taxon")
-
-	for entry := range *p.Stream() {
-		fmt.Println(entry)
-	}
-
-}
-
-func TestHmdb(t *testing.T) {
-
-	file, _ := os.Open("hmdb.xml")
-	defer file.Close()
-
-	br := bufio.NewReader(file)
-
-	p := NewXmlParser(br, "metabolite").SkipTags([]string{"taxonomy", "ontology"})
-
-	entrycount := 0
-	for range *p.Stream() {
-		entrycount++
-	}
-
-	if entrycount != 1 {
-		panic("Expected result count is 1 but found ->" + string(entrycount))
-	}
-
-}
-
-func TestBooks2Xml(t *testing.T) {
-
-	file, _ := os.Open("books2.xml")
-	defer file.Close()
-
-	br := bufio.NewReader(file)
-
-	p := NewXmlParser(br, "book").SkipTags([]string{"description"})
-
-	for book := range *p.Stream() {
-
-		// print ISBN value
-		isbn := book.Attrs["ISBN"]
-		fmt.Println(isbn)
-
-		// print title
-		title := book.Elements["title"][0].InnerText
-		fmt.Println(title)
-
-		// print a user commet which has rating 4
-		// basically you can walk on all the sub nodes if you have
-		for _, userComments := range book.Elements["comments"][0].Childs {
-			for _, comment := range userComments {
-				if comment.Attrs["rating"] == "4" {
-					// print the user comment
-					fmt.Println(comment.InnerText)
-				}
-			}
-		}
-
-	}
-
-}
-
-// this test must throw panic
-func TestBooksInvalidXml(t *testing.T) {
-
-	file, _ := os.Open("books_invalid.xml")
-	defer file.Close()
-
-	br := bufio.NewReader(file)
-
-	p := NewXmlParser(br, "book").SkipTags([]string{"description"})
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer func() {
-			if r := recover(); r == nil {
-				panic("The code did not panic")
-			} else {
-				os.Exit(0)
-			}
-			wg.Wait()
-		}()
-
-	}()
-
-	for range *p.Stream() {
-	}
-	wg.Done()
 
 }
