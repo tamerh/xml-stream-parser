@@ -27,9 +27,11 @@ xml-stream-parser is xml parser for GO. It is efficient to parse large xml data 
 
 <b>Stream</b> over books
 ```go
+
+
 f, _ := os.Open("input.xml")
 br := bufio.NewReaderSize(f,8192)
-parser := pr.NewXmlParser(br, "books")
+parser := xmlparser.NewXmlParser(br, "book")
 
 for xml := range *parser.Stream() {
 	fmt.Println(xml.Childs["title"][0].InnerText)
@@ -41,7 +43,7 @@ for xml := range *parser.Stream() {
 
 <b>Skip</b> tags for speed
 ```go
-parser := pr.NewXmlParser(br, "books").SkipElements([]string{"price", "comments"})
+parser := xmlparser.NewXmlParser(br, "book").SkipElements([]string{"price", "comments"})
 ```
 
 <b>Error</b> handlings
