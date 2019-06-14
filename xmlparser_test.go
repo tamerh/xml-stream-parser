@@ -17,7 +17,7 @@ func getparserFile(filename string, prop string) *XMLParser {
 
 	br := bufio.NewReader(file)
 
-	p := NewXmlParser(br, prop)
+	p := NewXMLParser(br, prop)
 
 	return p
 }
@@ -27,7 +27,7 @@ func TestBasics(t *testing.T) {
 	p := getparser("tag1")
 
 	var results []*XMLElement
-	for xml := range *p.Stream() {
+	for xml := range p.Stream() {
 		results = append(results, xml)
 	}
 	if len(results) != 2 {
@@ -105,7 +105,7 @@ func TestTagWithNoChild(t *testing.T) {
 	p := getparser("tag2")
 
 	var results []*XMLElement
-	for xml := range *p.Stream() {
+	for xml := range p.Stream() {
 		results = append(results, xml)
 	}
 	if len(results) != 2 {
@@ -121,7 +121,7 @@ func TestTagWithNoChild(t *testing.T) {
 	p = getparser("tag3")
 
 	results = results[:0]
-	for xml := range *p.Stream() {
+	for xml := range p.Stream() {
 		results = append(results, xml)
 	}
 
@@ -147,7 +147,7 @@ func TestTagWithSpace(t *testing.T) {
 	p := getparser("tag4")
 
 	var results []*XMLElement
-	for xml := range *p.Stream() {
+	for xml := range p.Stream() {
 		results = append(results, xml)
 	}
 
@@ -170,7 +170,7 @@ func TestQuote(t *testing.T) {
 	p := getparser("quotetest")
 
 	var results []*XMLElement
-	for xml := range *p.Stream() {
+	for xml := range p.Stream() {
 		results = append(results, xml)
 	}
 
@@ -189,7 +189,7 @@ func TestSkip(t *testing.T) {
 	p := getparser("tag1").SkipElements([]string{"tag11", "tag13"})
 
 	var results []*XMLElement
-	for xml := range *p.Stream() {
+	for xml := range p.Stream() {
 		results = append(results, xml)
 	}
 
@@ -223,7 +223,7 @@ func TestError(t *testing.T) {
 
 	p := getparserFile("error.xml", "tag1")
 
-	for xml := range *p.Stream() {
+	for xml := range p.Stream() {
 		if xml.Err == nil {
 			panic("It must give error")
 		}

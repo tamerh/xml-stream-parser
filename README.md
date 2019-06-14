@@ -30,10 +30,10 @@ xml-stream-parser is xml parser for GO. It is efficient to parse large xml data 
 
 
 f, _ := os.Open("input.xml")
-br := bufio.NewReaderSize(f,8192)
-parser := xmlparser.NewXmlParser(br, "book")
+br := bufio.NewReaderSize(f,65536)
+parser := xmlparser.NewXMLParser(br, "book")
 
-for xml := range *parser.Stream() {
+for xml := range parser.Stream() {
 	fmt.Println(xml.Childs["title"][0].InnerText)
 	fmt.Println(xml.Childs["comments"][0].Childs["userComment"][0].Attrs["rating"])
 	fmt.Println(xml.Childs["comments"][0].Childs["userComment"][0].InnerText)

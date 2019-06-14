@@ -23,7 +23,7 @@ type XMLElement struct {
 	Err       error
 }
 
-func NewXmlParser(reader *bufio.Reader, loopElement string) *XMLParser {
+func NewXMLParser(reader *bufio.Reader, loopElement string) *XMLParser {
 
 	x := &XMLParser{
 		reader:        reader,
@@ -47,11 +47,11 @@ func (x *XMLParser) SkipElements(skipElements []string) *XMLParser {
 
 }
 
-func (x *XMLParser) Stream() *chan *XMLElement {
+func (x *XMLParser) Stream() chan *XMLElement {
 
 	go x.parse()
 
-	return &x.resultChannel
+	return x.resultChannel
 
 }
 
@@ -178,7 +178,6 @@ func (x *XMLParser) getElementTree(tagName string, result *XMLElement) *XMLEleme
 			}
 
 			tagName2, element, tagClosed, err = x.startElement()
-			//todo check skip here
 
 			if err != nil {
 				result.Err = err
