@@ -43,7 +43,7 @@ for xml := range parser.Stream() {
 
 <b>Skip</b> tags for speed
 ```go
-parser := xmlparser.NewXmlParser(br, "book").SkipElements([]string{"price", "comments"})
+parser := xmlparser.NewXMLParser(br, "book").SkipElements([]string{"price", "comments"})
 ```
 
 <b>Error</b> handlings
