@@ -48,7 +48,7 @@ parser := xmlparser.NewXmlParser(br, "book").SkipElements([]string{"price", "com
 
 <b>Error</b> handlings
 ```go
-for xml := range *parser.Stream() {
+for xml := range parser.Stream() {
    if xml.Err !=nil { 
       // handle error
    }
