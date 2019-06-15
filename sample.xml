@@ -1,3 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Comment at top before declarations -->
+<!DOCTYPE note SYSTEM "Note.dtd">
+<!DOCTYPE chapter [
+<!ELEMENT chapter (title,para+)>
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT para (#PCDATA)>
+]>
+<!-- Comment at top after declarations -->
 <examples>
     <tag1 att1="<att0>" att2="att0">
         <tag11 att1="att0">InnerText110</tag11>

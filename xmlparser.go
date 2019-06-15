@@ -65,6 +65,13 @@ func (x *XMLParser) parse() {
 	var b byte
 	var iscomment bool
 
+	err = x.skipDeclerations()
+
+	if err != nil {
+		x.sendError()
+		return
+	}
+
 	for {
 		b, err = x.readByte()
 
@@ -336,7 +343,6 @@ search_close_tag:
 
 func (x *XMLParser) isComment() (bool, error) {
 
-	x.scratch.reset()
 	var c byte
 	var err error
 
@@ -351,6 +357,27 @@ func (x *XMLParser) isComment() (bool, error) {
 		return false, nil
 	}
 
+	var d, e byte
+
+	d, err = x.readByte()
+
+	if err != nil {
+		return false, err
+	}
+
+	e, err = x.readByte()
+
+	if err != nil {
+		return false, err
+	}
+
+	if d != '-' || e != '-' {
+		err = x.defaultError()
+		return false, err
+	}
+
+	// skip part
+	x.scratch.reset()
 	for {
 
 		c, err = x.readByte()
@@ -364,6 +391,111 @@ func (x *XMLParser) isComment() (bool, error) {
 		}
 
 		x.scratch.add(c)
+
+	}
+
+}
+
+func (x *XMLParser) skipDeclerations() error {
+
+	var err error
+	var a, c, d byte
+	var b []byte
+
+scan_declartions:
+	for {
+		a, err = x.readByte()
+
+		if err != nil {
+			return err
+		}
+
+		if x.isWS(a) {
+			continue
+		}
+
+		if a == '<' {
+
+			b, err = x.reader.Peek(1) // this is needed because we cant unread 2 bytes consequtively
+
+			if err != nil {
+				return err
+			}
+
+			if b[0] == '!' || b[0] == '?' { // either comment or decleration
+
+				_, err = x.readByte()
+
+				if err != nil {
+					return err
+				}
+
+				c, err = x.readByte()
+
+				if err != nil {
+					return err
+				}
+
+				d, err = x.readByte()
+
+				if err != nil {
+					return err
+				}
+
+				if c == '-' && d == '-' {
+					goto skipComment
+				} else {
+					goto skipDecleration
+				}
+
+			} else { // declerations ends.
+
+				err = x.unreadByte()
+				return err
+
+			}
+
+		}
+	}
+
+skipComment:
+	x.scratch.reset()
+	for {
+
+		c, err = x.readByte()
+
+		if err != nil {
+			return err
+		}
+
+		if c == '>' && len(x.scratch.bytes()) > 1 && x.scratch.bytes()[len(x.scratch.bytes())-1] == '-' && x.scratch.bytes()[len(x.scratch.bytes())-2] == '-' {
+			goto scan_declartions
+		}
+
+		x.scratch.add(c)
+
+	}
+
+skipDecleration:
+	depth := 1
+	for {
+
+		c, err = x.readByte()
+
+		if err != nil {
+			return err
+		}
+
+		if c == '>' {
+			depth--
+			if depth == 0 {
+				goto scan_declartions
+			}
+			continue
+		}
+		if c == '<' {
+			depth++
+		}
 
 	}
 
