@@ -414,23 +414,22 @@ scan_declartions:
 
 		if a[0] == '<' {
 
-			// read peaked byte first
-			_, err = x.readByte()
-			if err != nil {
-				return err
-			}
-
-			b, err = x.reader.Peek(1)
+			b, err = x.reader.Peek(2)
 
 			if err != nil {
 				return err
 			}
 
-			if b[0] == '!' || b[0] == '?' { // either comment or decleration
+			if b[1] == '!' || b[1] == '?' { // either comment or decleration
 
-				// read peaked byte
+				// read 2 peaked byte
 				_, err = x.readByte()
 
+				if err != nil {
+					return err
+				}
+
+				_, err = x.readByte()
 				if err != nil {
 					return err
 				}
