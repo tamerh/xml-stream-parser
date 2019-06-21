@@ -398,25 +398,29 @@ func (x *XMLParser) isComment() (bool, error) {
 
 func (x *XMLParser) skipDeclerations() error {
 
+	var a, b []byte
+	var c, d byte
 	var err error
-	var a, c, d byte
-	var b []byte
 
 scan_declartions:
 	for {
-		a, err = x.readByte()
+
+		// when identifying a xml declaration we need to know 2 bytes ahead. Unread works 1 byte at a time so we use Peek and read together.
+		a, err = x.reader.Peek(1)
 
 		if err != nil {
 			return err
 		}
 
-		if x.isWS(a) {
-			continue
-		}
+		if a[0] == '<' {
 
-		if a == '<' {
+			// read peaked byte first
+			_, err = x.readByte()
+			if err != nil {
+				return err
+			}
 
-			b, err = x.reader.Peek(1) // this is needed because we cant unread 2 bytes consequtively
+			b, err = x.reader.Peek(1)
 
 			if err != nil {
 				return err
@@ -424,6 +428,7 @@ scan_declartions:
 
 			if b[0] == '!' || b[0] == '?' { // either comment or decleration
 
+				// read peaked byte
 				_, err = x.readByte()
 
 				if err != nil {
@@ -450,12 +455,19 @@ scan_declartions:
 
 			} else { // declerations ends.
 
-				err = x.unreadByte()
-				return err
+				return nil
 
 			}
 
 		}
+
+		// read peaked byte
+		_, err = x.readByte()
+
+		if err != nil {
+			return err
+		}
+
 	}
 
 skipComment:
