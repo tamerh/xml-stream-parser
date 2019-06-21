@@ -400,7 +400,7 @@ func (x *XMLParser) skipDeclerations() error {
 
 	var err error
 	var a, c, d byte
-	var b []byte
+	var b byte
 
 scan_declartions:
 	for {
@@ -416,13 +416,15 @@ scan_declartions:
 
 		if a == '<' {
 
-			b, err = x.reader.Peek(1) // this is needed because we cant unread 2 bytes consequtively
+			//	b, err = x.reader.Peek(1) // this is needed because we cant unread 2 bytes consequtively
+			// Changed to readByte because UnreadByte after Peek is raises error
+			b, err = x.readByte()
 
 			if err != nil {
 				return err
 			}
 
-			if b[0] == '!' || b[0] == '?' { // either comment or decleration
+			if b == '!' || b == '?' { // either comment or decleration
 
 				_, err = x.readByte()
 
