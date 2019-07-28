@@ -27,8 +27,14 @@
     <tag2 att1="testattr<2"/>
     <tag3>tag31</tag3>
     <tag3 att1="testattr<2">tag32 </tag3>
+    <skipOutsideTag>
+        <tag4>SkipTag</tag4>
+    </skipOutsideTag>
     <tag4 >        <!-- some comments <> "" '' -->
         <tag11 att1="att0 ">InnerText0 </tag11>
     </tag4 >
+    <skipOutsideTag>
+        <tag4>SkipTag</tag4>
+    </skipOutsideTag>
     <quotetest att1='test' att2='test"' att3="test'"/>
 </examples>

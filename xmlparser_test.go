@@ -11,7 +11,7 @@ func getparser(prop string) *XMLParser {
 	return getparserFile("sample.xml", prop)
 }
 
-func getparserFile(filename string, prop string) *XMLParser {
+func getparserFile(filename, prop string) *XMLParser {
 
 	file, _ := os.Open(filename)
 
@@ -20,6 +20,7 @@ func getparserFile(filename string, prop string) *XMLParser {
 	p := NewXMLParser(br, prop)
 
 	return p
+
 }
 
 func TestBasics(t *testing.T) {
@@ -142,9 +143,9 @@ func TestTagWithNoChild(t *testing.T) {
 
 }
 
-func TestTagWithSpace(t *testing.T) {
+func TestTagWithSpaceAndSkipOutElement(t *testing.T) {
 
-	p := getparser("tag4")
+	p := getparser("tag4").SkipElements([]string{"skipOutsideTag"}).SkipOuterElements()
 
 	var results []*XMLElement
 	for xml := range p.Stream() {
@@ -229,4 +230,28 @@ func TestError(t *testing.T) {
 		}
 	}
 
+}
+
+func Benchmark1(b *testing.B) {
+
+	for n := 0; n < b.N; n++ {
+		p := getparser("tag4").SkipElements([]string{"skipOutsideTag"}).SkipOuterElements()
+		for xml := range p.Stream() {
+			nothing(xml)
+		}
+	}
+}
+
+func Benchmark2(b *testing.B) {
+
+	for n := 0; n < b.N; n++ {
+		p := getparser("tag4")
+		for xml := range p.Stream() {
+			nothing(xml)
+		}
+	}
+
+}
+
+func nothing(...interface{}) {
 }

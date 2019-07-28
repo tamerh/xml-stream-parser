@@ -7,13 +7,14 @@ import (
 )
 
 type XMLParser struct {
-	reader        *bufio.Reader
-	loopElement   string
-	resultChannel chan *XMLElement
-	skipElements  map[string]bool
-	scratch       *scratch
-	scratch2      *scratch
-	TotalReadSize uint64
+	reader            *bufio.Reader
+	loopElement       string
+	resultChannel     chan *XMLElement
+	skipElements      map[string]bool
+	skipOuterElements bool
+	scratch           *scratch
+	scratch2          *scratch
+	TotalReadSize     uint64
 }
 
 type XMLElement struct {
@@ -43,6 +44,15 @@ func (x *XMLParser) SkipElements(skipElements []string) *XMLParser {
 			x.skipElements[s] = true
 		}
 	}
+	return x
+
+}
+
+// by default skip elements works for stream elements childs
+// if this method called parser skip also outer elements
+func (x *XMLParser) SkipOuterElements() *XMLParser {
+
+	x.skipOuterElements = true
 	return x
 
 }
@@ -113,6 +123,18 @@ func (x *XMLParser) parse() {
 				x.resultChannel <- element
 				if element.Err != nil {
 					return
+				}
+			} else if x.skipOuterElements {
+
+				if _, ok := x.skipElements[tagName]; ok && !tagClosed {
+
+					err = x.skipElement(tagName)
+					if err != nil {
+						x.sendError()
+						return
+					}
+					continue
+
 				}
 
 			}
@@ -192,7 +214,11 @@ func (x *XMLParser) getElementTree(tagName string, result *XMLElement) *XMLEleme
 			}
 
 			if _, ok := x.skipElements[tagName2]; ok && !tagClosed {
-				x.skipElement(tagName2)
+				err = x.skipElement(tagName2)
+				if err != nil {
+					result.Err = err
+					return result
+				}
 				continue
 			}
 			if !tagClosed {
@@ -604,8 +630,6 @@ func (x *XMLParser) string(start byte) (string, error) {
 
 // scratch taken from
 //https://github.com/bcicen/jstream
-// string called by `any` or `object`(for map keys) after reading `"`
-
 type scratch struct {
 	data []byte
 	fill int
