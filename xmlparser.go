@@ -65,6 +65,26 @@ func (x *XMLParser) Stream() chan *XMLElement {
 
 }
 
+func GetField(element XMLElement, paths []string, indexes []int, attr string) string {
+	if len(indexes) == 0 {
+		indexes = make([]int, len(paths))
+	}
+	path, paths := paths[0], paths[1:]
+	index, indexes := indexes[0], indexes[1:]
+	if len(element.Childs[path]) > 0 {
+		if len(paths) == 0 {
+			if attr == "" {
+				return element.Childs[path][index].InnerText
+			} else {
+				return element.Childs[path][index].Attrs[attr]
+			}
+		}
+		return GetField(element.Childs[path][index], paths, indexes, attr)
+	} else {
+		return ""
+	}
+}
+
 func (x *XMLParser) parse() {
 
 	defer close(x.resultChannel)
