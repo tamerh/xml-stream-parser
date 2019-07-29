@@ -65,6 +65,24 @@ func (x *XMLParser) Stream() chan *XMLElement {
 
 }
 
+func (element *XMLElement) GetValue(paths []string, indexes []int, attr string) string {
+	if len(indexes) == 0 {
+		indexes = make([]int, len(paths))
+	}
+	path, paths := paths[0], paths[1:]
+	index, indexes := indexes[0], indexes[1:]
+	if len(element.Childs[path]) > 0 {
+		if len(paths) == 0 {
+			if attr == "" {
+				return element.Childs[path][index].InnerText
+			}
+			return element.Childs[path][index].Attrs[attr]
+		}
+		return element.Childs[path][index].GetValue(paths, indexes, attr)
+	}
+	return ""
+}
+
 func (x *XMLParser) parse() {
 
 	defer close(x.resultChannel)
