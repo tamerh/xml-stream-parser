@@ -65,7 +65,7 @@ func (x *XMLParser) Stream() chan *XMLElement {
 
 }
 
-func GetField(element XMLElement, paths []string, indexes []int, attr string) string {
+func (element XMLElement) GetValue(paths []string, indexes []int, attr string) string {
 	if len(indexes) == 0 {
 		indexes = make([]int, len(paths))
 	}
@@ -79,7 +79,7 @@ func GetField(element XMLElement, paths []string, indexes []int, attr string) st
 				return element.Childs[path][index].Attrs[attr]
 			}
 		}
-		return GetField(element.Childs[path][index], paths, indexes, attr)
+		return element.Childs[path][index].GetValue(paths, indexes, attr)
 	} else {
 		return ""
 	}
