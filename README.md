@@ -63,12 +63,13 @@ parser.TotalReadSize
 
 <b>Using GetValue</b> function from a XMLElement instance:
 ```
-value = xml.GetValue("tag1.tag11")
-value = xml.GetValue("tag1[2].tag11[1]")
+value = xml.GetValue("comments.userComment")
+value = xml.GetValue("comments[1].userComment[1]")
 ```
 and to get an attribute value:
 ```
-attValue = xml.GetValue("tag1.tag12@att0")
+attValue = xml.GetValue("comments[1].userComment@rating")
+attValue = xml.GetValue("comments.userComment[1]@rating")
 ```
 
 If you interested check also [json parser](https://github.com/tamerh/jsparser) which works similarly
