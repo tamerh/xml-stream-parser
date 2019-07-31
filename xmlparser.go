@@ -67,29 +67,53 @@ func (x *XMLParser) Stream() chan *XMLElement {
 
 }
 
-func (element *XMLElement) GetValue(xpath string) string {
-	var path, paths, attr string
-	attr = ""
+func (element *XMLElement) GetNodes(xpath string) []XMLElement {
+	var path, paths string
 	xpaths := strings.SplitN(xpath, ".", 2)
 	if len(xpaths) > 1 {
 		paths = xpaths[1]
 	}
-	xpaths = strings.Split(xpaths[0], "@")
 	path = xpaths[0]
-	if len(xpaths) > 1 {
-		attr = xpaths[1]
-	}
 	path, index := element.pathIndex(path)
 	if len(element.Childs[path]) > index {
 		if paths == "" {
-			if attr == "" {
-				return element.Childs[path][index].InnerText
-			}
-			return element.Childs[path][index].Attrs[attr]
+			return element.Childs[path]
 		}
-		return element.Childs[path][index].GetValue(paths)
+		return element.Childs[path][index].GetNodes(paths)
 	}
-	return ""
+	return []XMLElement{}
+}
+func (element *XMLElement) GetNode(xpath string) XMLElement {
+	var index int
+	nodes := element.GetNodes(xpath)
+	indexes := strings.Split(xpath, ".")
+	indexes = strings.Split(indexes[len(indexes)-1], "[")
+	indexes = strings.Split(indexes[len(indexes)-1], "[")
+	if len(indexes) == 1 {
+		var err error
+		index, err = strconv.Atoi(strings.Split(indexes[0], "]")[0])
+		if err != nil {
+			index = 0
+		}
+	} else {
+		index = 0
+	}
+	if len(nodes) > index {
+		return nodes[index]
+	}
+	return XMLElement{}
+}
+func (element *XMLElement) GetValue(xpath string) string {
+	var attr string
+	xpaths := strings.SplitN(xpath, "@", 2)
+	if len(xpaths) > 1 {
+		attr = xpaths[1]
+	}
+	node := element.GetNode(xpaths[0])
+	if attr == "" {
+		return node.InnerText
+	}
+	return node.Attrs[attr]
 }
 func (element *XMLElement) pathIndex(path string) (string, int) {
 	indexes := strings.Split(path, "[")
