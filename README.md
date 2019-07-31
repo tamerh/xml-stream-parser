@@ -79,7 +79,7 @@ even you can get the value of a different node than the first using indexation l
 ```
 found = xml.GetValue("tag1[1].tag11@att0")
 ```
-_note: this index works in the same way that the indexation of the arrays in functional language, that means that it won´t work as the indexation in the xslt. In this way 0 will be the fisrt element, 1 the second, and so on._
+_note: this index works in the same way that the indexation of the arrays in functional language, that means that it won´t work as the indexation in the xslt. In this way 0 will be the fisrt element, 1 the second, and so on._<br/>
 The last point about this function: it will return an empty string when you ask for an non existing node, a index out of the rage, or a non existing attribute, so all of this invokations:
 ```
 found = xml.GetValue("missingTag.tag11@att")
