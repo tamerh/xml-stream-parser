@@ -235,6 +235,10 @@ func TestGetValue(t *testing.T) {
 	var found string
 	p := getparser("examples")
 	for xml := range p.Stream() {
+		found = xml.GetValue("@inittag")
+		if found != "initial_attr" {
+			t.Errorf("@inittag doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "initial_attr", found)
+		}
 		found = xml.GetValue("tag1.tag11")
 		if found != "InnerText110" {
 			t.Errorf("tag1>tag11 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText110", found)

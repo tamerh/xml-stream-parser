@@ -105,11 +105,16 @@ func (element *XMLElement) GetNode(xpath string) XMLElement {
 }
 func (element *XMLElement) GetValue(xpath string) string {
 	var attr string
+	var node XMLElement
 	xpaths := strings.SplitN(xpath, "@", 2)
 	if len(xpaths) > 1 {
 		attr = xpaths[1]
 	}
-	node := element.GetNode(xpaths[0])
+	if xpaths[0] == "" {
+		node = *element
+	} else {
+		node = element.GetNode(xpaths[0])
+	}
 	if attr == "" {
 		return node.InnerText
 	}

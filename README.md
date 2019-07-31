@@ -6,7 +6,7 @@ xml-stream-parser is xml parser for GO. It is efficient to parse large xml data 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <bookstore>
-   <book>
+   <book isbn="XXX">
       <title>The Iliad and The Odyssey</title>
       <price>12.95</price>
       <comments>
@@ -14,7 +14,7 @@ xml-stream-parser is xml parser for GO. It is efficient to parse large xml data 
          <userComment rating="2">I like other versions better.</userComment>
       </comments>
    </book>
-   <book>
+   <book isbn="YYY">
       <title>Anthology of World Literature</title>
       <price>24.95</price>
       <comments>
@@ -70,6 +70,17 @@ and to get an attribute value:
 ```
 attValue = xml.GetValue("comments[1].userComment@rating")
 attValue = xml.GetValue("comments.userComment[1]@rating")
+attValue = xml.GetValue("@isbn")
+```
+<b>Using GetNodes and GetNode</b> function from a XMLElement instance:
+```
+singleNode = xml.GetNode("comments.userComment")
+singleNode = xml.GetNode("comments[1].userComment[1]")
+```
+and
+```
+nodeArray = xml.GetNodes("comments.userComment")
+nodeArray = xml.GetNodes("comments[1].userComment")
 ```
 
 If you interested check also [json parser](https://github.com/tamerh/jsparser) which works similarly
