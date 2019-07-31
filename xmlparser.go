@@ -3,6 +3,8 @@ package xmlparser
 import (
 	"bufio"
 	"fmt"
+	"strconv"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -65,24 +67,43 @@ func (x *XMLParser) Stream() chan *XMLElement {
 
 }
 
-func (element *XMLElement) GetValue(paths []string, indexes []int, attr string) string {
-	if len(indexes) == 0 {
-		indexes = make([]int, len(paths))
+func (element *XMLElement) GetValue(xpath string) string {
+	var path, paths, attr string
+	attr = ""
+	xpaths := strings.SplitN(xpath, ".", 2)
+	if len(xpaths) > 1 {
+		paths = xpaths[1]
 	}
-	path, paths := paths[0], paths[1:]
-	index, indexes := indexes[0], indexes[1:]
+	xpaths = strings.Split(xpaths[0], "@")
+	path = xpaths[0]
+	if len(xpaths) > 1 {
+		attr = xpaths[1]
+	}
+	path, index := getIndex(path)
 	if len(element.Childs[path]) > 0 {
-		if len(paths) == 0 {
+		if paths == "" {
 			if attr == "" {
 				return element.Childs[path][index].InnerText
 			}
 			return element.Childs[path][index].Attrs[attr]
 		}
-		return element.Childs[path][index].GetValue(paths, indexes, attr)
+		return element.Childs[path][index].GetValue(paths)
 	}
 	return ""
 }
-
+func getIndex(path string) (string, int) {
+	indexes := strings.Split(path, "[")
+	path = indexes[0]
+	if len(indexes) > 1 {
+		indexes := strings.Split(indexes[1], "]")
+		index, err := strconv.Atoi(indexes[0])
+		if err != nil {
+			return path, 0
+		}
+		return path, index
+	}
+	return path, 0
+}
 func (x *XMLParser) parse() {
 
 	defer close(x.resultChannel)
