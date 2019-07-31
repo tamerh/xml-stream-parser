@@ -80,7 +80,7 @@ func (element *XMLElement) GetValue(xpath string) string {
 		attr = xpaths[1]
 	}
 	path, index := getIndex(path)
-	if len(element.Childs[path]) > 0 {
+	if len(element.Childs[path]) > index {
 		if paths == "" {
 			if attr == "" {
 				return element.Childs[path][index].InnerText

@@ -235,10 +235,10 @@ func TestGetValue(t *testing.T) {
 	var found string
 	p := getparser("examples")
 	for xml := range p.Stream() {
-		// found = xml.GetValue("tag1.tag11")
-		// if found != "InnerText110" {
-		// 	t.Errorf("tag1>tag11 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText110", found)
-		// }
+		found = xml.GetValue("tag1.tag11")
+		if found != "InnerText110" {
+			t.Errorf("tag1>tag11 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText110", found)
+		}
 		found = xml.GetValue("tag1.tag11[1]")
 		if found != "InnerText111" {
 			t.Errorf("tag1>tag11[1] doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText111", found)
@@ -247,9 +247,25 @@ func TestGetValue(t *testing.T) {
 		if found != "InnerText2" {
 			t.Errorf("tag1[1]>tag11 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText2", found)
 		}
+		found = xml.GetValue("tag1[10].tag11")
+		if found != "" {
+			t.Errorf("tag1[10]>tag11 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText2", found)
+		}
+		found = xml.GetValue("tag1.tag11[10]")
+		if found != "" {
+			t.Errorf("tag1>tag11[10] doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText2", found)
+		}
+		found = xml.GetValue("tag1.tag12@att1")
+		if found != "att0" {
+			t.Errorf("tag1>tag12>@att1 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "att1", found)
+		}
 		found = xml.GetValue("tag1[1].tag12@att1")
 		if found != "att1" {
 			t.Errorf("tag1[1]>tag12>@att1 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "att1", found)
+		}
+		found = xml.GetValue("tag1[1].tag12@missingatt")
+		if found != "" {
+			t.Errorf("tag1[1]>tag12>@missingatt doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "att1", found)
 		}
 		found = xml.GetValue("missingtag.tag12.tag13")
 		if found != "" {
@@ -259,11 +275,6 @@ func TestGetValue(t *testing.T) {
 		if found != "" {
 			t.Errorf("tag1[1]>tag12>missingtag>@att1 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "att1", found)
 		}
-
-		// found = xml.GetValue("tag1[1]tag12[4].missingtag@att1")
-		// if found != "" {
-		// 	t.Errorf("tag1>tag12>missingtag>@att1 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "att1", found)
-		// }
 	}
 
 }
