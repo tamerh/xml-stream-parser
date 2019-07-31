@@ -79,7 +79,7 @@ func (element *XMLElement) GetValue(xpath string) string {
 	if len(xpaths) > 1 {
 		attr = xpaths[1]
 	}
-	path, index := getIndex(path)
+	path, index := element.pathIndex(path)
 	if len(element.Childs[path]) > index {
 		if paths == "" {
 			if attr == "" {
@@ -91,7 +91,7 @@ func (element *XMLElement) GetValue(xpath string) string {
 	}
 	return ""
 }
-func getIndex(path string) (string, int) {
+func (element *XMLElement) pathIndex(path string) (string, int) {
 	indexes := strings.Split(path, "[")
 	path = indexes[0]
 	if len(indexes) > 1 {
