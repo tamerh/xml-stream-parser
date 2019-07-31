@@ -63,13 +63,8 @@ parser.TotalReadSize
 
 <b>Using GetValue</b> function from a XMLElement instance:
 ```
-func TestGetValue(t *testing.T) {
-	var found string
-	p := getparser("examples")
-	for xml := range p.Stream() {
-		found = xml.GetValue("tag1.tag11")
-   }
-}
+   value = xml.GetValue("tag1.tag11")
+   value = xml.GetValue("tag1[2].tag11[1]")
 ```
 and to get an attribute value:
 ```
