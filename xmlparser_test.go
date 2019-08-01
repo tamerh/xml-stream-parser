@@ -279,6 +279,12 @@ func TestGetValue(t *testing.T) {
 		if found != "" {
 			t.Errorf("tag1[1]>tag12>missingtag>@att1 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "att1", found)
 		}
+
+		node := xml.GetNode("tag1[1].tag13")
+		found = node.GetValue("")
+		if found != "InnerText213" {
+			t.Errorf("tag1[1]>tag13 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText213", found)
+		}
 	}
 
 }
