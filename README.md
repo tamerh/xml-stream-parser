@@ -82,5 +82,18 @@ and
 nodeArray = xml.GetNodes("comments.userComment")
 nodeArray = xml.GetNodes("comments[1].userComment")
 ```
+<b>Using GetAllNodes</b> function from a XMLElement instance:
+This function allows to get all nodes following all the tree of the passed xpath and recovering all its leafs, for example
+```
+f, _ := os.Open("input.xml")
+br := bufio.NewReaderSize(f,65536)
+parser := xmlparser.NewXMLParser(br, "bookstore") 
+// notice we are getting the root node, so the next for will loop only 1 time 
+for xml := range parser.Stream() {
+   nodes := xml.GetAllNodes("book.comment.userComment")
+}
+```
+this invokation will return an array of 4 elements, 2 of each _comments_ node.
+
 
 If you interested check also [json parser](https://github.com/tamerh/jsparser) which works similarly
