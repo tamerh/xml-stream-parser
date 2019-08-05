@@ -37,4 +37,24 @@
         <tag4>SkipTag</tag4>
     </skipOutsideTag>
     <quotetest att1='test' att2='test"' att3="test'"/>
+    <father type="father1">
+        <son type="son11">
+            <grandson>grandson111</grandson>
+            <grandson>grandson112</grandson>
+        </son>
+        <son type="son12">
+            <grandson>grandson121</grandson>
+            <grandson>grandson122</grandson>
+        </son>
+        <son type="son13">
+            <grandson>grandson131</grandson>
+            <grandson>grandson132</grandson>
+        </son>
+    </father>
+    <father type="father2">
+        <son type="son21">
+            <grandson>grandson211</grandson>
+            <grandson>grandson212</grandson>
+        </son>
+    </father>
 </examples>

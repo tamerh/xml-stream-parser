@@ -231,6 +231,22 @@ func TestError(t *testing.T) {
 	}
 
 }
+func TestGetAllNodes(t *testing.T) {
+	p := getparser("examples")
+	for xml := range p.Stream() {
+		nodes := xml.GetAllNodes("father.son.grandson")
+		if len(nodes) != 8 {
+			t.Errorf("Lenght of xml.GetAllNodes is not the expected \n\t Expected: %d \n\t Found: %d", 8, len(nodes))
+		} else {
+			values := []string{"grandson111", "grandson112", "grandson121", "grandson122", "grandson131", "grandson132", "grandson211", "grandson212"}
+			for i, node := range nodes {
+				if node.GetValue("") != values[i] {
+					t.Errorf("The value of the grandson %d doesn´t match with the expected \n\t Expected: %s \n\t Found: %s", i, values[i], node.GetValue(""))
+				}
+			}
+		}
+	}
+}
 func TestGetValue(t *testing.T) {
 	var found string
 	p := getparser("examples")

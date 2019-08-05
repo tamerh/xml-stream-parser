@@ -67,6 +67,19 @@ func (x *XMLParser) Stream() chan *XMLElement {
 
 }
 
+func (element *XMLElement) GetAllNodes(xpath string) []XMLElement {
+	xpaths := strings.SplitN(xpath, ".", 2)
+	if len(xpaths) > 1 {
+		paths := xpaths[1]
+		elements := []XMLElement{}
+		nodes := element.GetNodes(xpaths[0])
+		for _, node := range nodes {
+			elements = append(elements, node.GetAllNodes(paths)...)
+		}
+		return elements
+	}
+	return element.GetNodes(xpaths[0])
+}
 func (element *XMLElement) GetNodes(xpath string) []XMLElement {
 	var path, paths string
 	xpaths := strings.SplitN(xpath, ".", 2)
