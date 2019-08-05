@@ -47,7 +47,7 @@ func TestBasics(t *testing.T) {
 		panic("Test failed")
 	}
 
-	if results[0].Childs["tag11"][0].InnerText != "InnerText110" {
+	if results[0].Childs["tag11"][0].InnerText != "Hello                                    你好            Gür" {
 		panic("Test failed")
 	}
 
@@ -227,38 +227,6 @@ func TestError(t *testing.T) {
 	for xml := range p.Stream() {
 		if xml.Err == nil {
 			panic("It must give error")
-		}
-	}
-
-}
-
-func TestGetField(t *testing.T) {
-	var found string
-	p := getparser("examples")
-	for xml := range p.Stream() {
-		found = xml.GetValue([]string{"tag1", "tag11"}, []int{}, "")
-		if found != "InnerText110" {
-			t.Errorf("tag1>tag11 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText110", found)
-		}
-		found = xml.GetValue([]string{"tag1", "tag11"}, []int{0, 1}, "")
-		if found != "InnerText111" {
-			t.Errorf("tag1>tag11 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText111", found)
-		}
-		found = xml.GetValue([]string{"tag1", "tag11"}, []int{1, 0}, "")
-		if found != "InnerText2" {
-			t.Errorf("tag1>tag11 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText2", found)
-		}
-		found = xml.GetValue([]string{"tag1", "tag12"}, []int{1, 0}, "att1")
-		if found != "att1" {
-			t.Errorf("tag1>tag12>@att1 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "att1", found)
-		}
-		found = xml.GetValue([]string{"missingtag", "tag12", "tag13"}, []int{0, 0, 0}, "")
-		if found != "" {
-			t.Errorf("missingtag>tag12>tag13 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "att1", found)
-		}
-		found = xml.GetValue([]string{"tag1", "tag12", "missingtag"}, []int{1, 0, 0}, "att1")
-		if found != "" {
-			t.Errorf("tag1>tag12>missingtag>@att1 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "att1", found)
 		}
 	}
 

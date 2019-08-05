@@ -65,24 +65,6 @@ func (x *XMLParser) Stream() chan *XMLElement {
 
 }
 
-func (element *XMLElement) GetValue(paths []string, indexes []int, attr string) string {
-	if len(indexes) == 0 {
-		indexes = make([]int, len(paths))
-	}
-	path, paths := paths[0], paths[1:]
-	index, indexes := indexes[0], indexes[1:]
-	if len(element.Childs[path]) > 0 {
-		if len(paths) == 0 {
-			if attr == "" {
-				return element.Childs[path][index].InnerText
-			}
-			return element.Childs[path][index].Attrs[attr]
-		}
-		return element.Childs[path][index].GetValue(paths, indexes, attr)
-	}
-	return ""
-}
-
 func (x *XMLParser) parse() {
 
 	defer close(x.resultChannel)
@@ -112,6 +94,16 @@ func (x *XMLParser) parse() {
 		}
 
 		if b == '<' {
+
+			iscdata, _, err := x.isCDATA()
+
+			if err != nil {
+				x.sendError()
+				return
+			}
+			if iscdata {
+				continue
+			}
 
 			iscomment, err = x.isComment()
 
@@ -188,6 +180,19 @@ func (x *XMLParser) getElementTree(tagName string, result *XMLElement) *XMLEleme
 
 		if cur == '<' {
 
+			iscdata, cddata, err := x.isCDATA()
+
+			if err != nil {
+				result.Err = err
+				return result
+			}
+			if iscdata {
+				for _, cd := range cddata {
+					x.scratch2.add(cd)
+				}
+				continue
+			}
+
 			iscomment, err = x.isComment()
 
 			if err != nil {
@@ -215,7 +220,7 @@ func (x *XMLParser) getElementTree(tagName string, result *XMLElement) *XMLEleme
 				}
 
 				if tag == tagName {
-					if len(result.Childs) == 0 { // check special tag???
+					if len(result.Childs) == 0 {
 						result.InnerText = string(x.scratch2.bytes())
 					}
 					return result
@@ -432,6 +437,131 @@ func (x *XMLParser) isComment() (bool, error) {
 
 		if c == '>' && len(x.scratch.bytes()) > 1 && x.scratch.bytes()[len(x.scratch.bytes())-1] == '-' && x.scratch.bytes()[len(x.scratch.bytes())-2] == '-' {
 			return true, nil
+		}
+
+		x.scratch.add(c)
+
+	}
+
+}
+
+func (x *XMLParser) isCDATA() (bool, []byte, error) {
+
+	var c byte
+	var b []byte
+	var err error
+
+	b, err = x.reader.Peek(2)
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	if b[0] != '!' {
+		x.unreadByte()
+		return false, nil, nil
+	}
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	if b[1] != '[' {
+		// this means this is not CDDATA either comment or or invalid xml which will be check during isComment
+		return false, nil, nil
+	}
+
+	// read peaked byte
+	_, err = x.readByte()
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	_, err = x.readByte()
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	c, err = x.readByte()
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	if c != 'C' {
+		err = x.defaultError()
+		return false, nil, err
+	}
+
+	c, err = x.readByte()
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	if c != 'D' {
+		err = x.defaultError()
+		return false, nil, err
+	}
+
+	c, err = x.readByte()
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	if c != 'A' {
+		err = x.defaultError()
+		return false, nil, err
+	}
+
+	c, err = x.readByte()
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	if c != 'T' {
+		err = x.defaultError()
+		return false, nil, err
+	}
+
+	c, err = x.readByte()
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	if c != 'A' {
+		err = x.defaultError()
+		return false, nil, err
+	}
+
+	c, err = x.readByte()
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	if c != '[' {
+		err = x.defaultError()
+		return false, nil, err
+	}
+
+	// this is possibly cdata // ]]>
+	x.scratch.reset()
+	for {
+
+		c, err = x.readByte()
+
+		if err != nil {
+			return false, nil, err
+		}
+
+		if c == '>' && len(x.scratch.bytes()) > 1 && x.scratch.bytes()[len(x.scratch.bytes())-1] == ']' && x.scratch.bytes()[len(x.scratch.bytes())-2] == ']' {
+			return true, x.scratch.bytes()[:len(x.scratch.bytes())-2], nil
 		}
 
 		x.scratch.add(c)
