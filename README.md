@@ -66,7 +66,11 @@ parser.TotalReadSize
 value = xml.GetValue("comments.userComment")
 value = xml.GetValue("comments[1].userComment[1]")
 ```
-and to get an attribute value:
+if you would want to get the InnerText from a node:
+```
+value = node.GetValue(".")
+```
+and never do `GetValue("")`. To get an attribute value:
 ```
 attValue = xml.GetValue("comments[1].userComment@rating")
 attValue = xml.GetValue("comments.userComment[1]@rating")

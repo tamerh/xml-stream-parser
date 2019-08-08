@@ -117,6 +117,11 @@ func (element *XMLElement) GetNode(xpath string) XMLElement {
 	return XMLElement{}
 }
 func (element *XMLElement) GetValue(xpath string) string {
+	if xpath == "." {
+		return element.InnerText
+	} else if xpath == "" {
+		panic("Empty string is not valid")
+	}
 	var attr string
 	var node XMLElement
 	xpaths := strings.SplitN(xpath, "@", 2)

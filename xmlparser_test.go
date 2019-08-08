@@ -240,8 +240,8 @@ func TestGetAllNodes(t *testing.T) {
 		} else {
 			values := []string{"grandson111", "grandson112", "grandson121", "grandson122", "grandson131", "grandson132", "grandson211", "grandson212"}
 			for i, node := range nodes {
-				if node.GetValue("") != values[i] {
-					t.Errorf("The value of the grandson %d doesn´t match with the expected \n\t Expected: %s \n\t Found: %s", i, values[i], node.GetValue(""))
+				if node.GetValue(".") != values[i] {
+					t.Errorf("The value of the grandson %d doesn´t match with the expected \n\t Expected: %s \n\t Found: %s", i, values[i], node.GetValue("."))
 				}
 			}
 		}
@@ -297,7 +297,7 @@ func TestGetValue(t *testing.T) {
 		}
 
 		node := xml.GetNode("tag1[1].tag13")
-		found = node.GetValue("")
+		found = node.GetValue(".")
 		if found != "InnerText213" {
 			t.Errorf("tag1[1]>tag13 doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "InnerText213", found)
 		}
