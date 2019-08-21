@@ -18,6 +18,7 @@ type XMLParser struct {
 }
 
 type XMLElement struct {
+	Name      string
 	Attrs     map[string]string
 	InnerText string
 	Childs    map[string][]XMLElement
@@ -69,7 +70,6 @@ func (x *XMLParser) parse() {
 
 	defer close(x.resultChannel)
 	var element *XMLElement
-	var tagName string
 	var tagClosed bool
 	var err error
 	var b byte
@@ -116,29 +116,29 @@ func (x *XMLParser) parse() {
 				continue
 			}
 
-			tagName, element, tagClosed, err = x.startElement()
+			element, tagClosed, err = x.startElement()
 
 			if err != nil {
 				x.sendError()
 				return
 			}
 
-			if tagName == x.loopElement {
+			if element.Name == x.loopElement {
 				if tagClosed {
 					x.resultChannel <- element
 					continue
 				}
 
-				element = x.getElementTree(tagName, element)
+				element = x.getElementTree(element)
 				x.resultChannel <- element
 				if element.Err != nil {
 					return
 				}
 			} else if x.skipOuterElements {
 
-				if _, ok := x.skipElements[tagName]; ok && !tagClosed {
+				if _, ok := x.skipElements[element.Name]; ok && !tagClosed {
 
-					err = x.skipElement(tagName)
+					err = x.skipElement(element.Name)
 					if err != nil {
 						x.sendError()
 						return
@@ -154,7 +154,7 @@ func (x *XMLParser) parse() {
 
 }
 
-func (x *XMLParser) getElementTree(tagName string, result *XMLElement) *XMLElement {
+func (x *XMLParser) getElementTree(result *XMLElement) *XMLElement {
 
 	if result.Err != nil {
 		return result
@@ -166,7 +166,6 @@ func (x *XMLParser) getElementTree(tagName string, result *XMLElement) *XMLEleme
 	var element *XMLElement
 	var tagClosed bool
 	x.scratch2.reset() // this hold the inner text
-	var tagName2 string
 	var iscomment bool
 
 	for {
@@ -219,7 +218,7 @@ func (x *XMLParser) getElementTree(tagName string, result *XMLElement) *XMLEleme
 					return result
 				}
 
-				if tag == tagName {
+				if tag == result.Name {
 					if len(result.Childs) == 0 {
 						result.InnerText = string(x.scratch2.bytes())
 					}
@@ -229,15 +228,15 @@ func (x *XMLParser) getElementTree(tagName string, result *XMLElement) *XMLEleme
 				x.unreadByte()
 			}
 
-			tagName2, element, tagClosed, err = x.startElement()
+			element, tagClosed, err = x.startElement()
 
 			if err != nil {
 				result.Err = err
 				return result
 			}
 
-			if _, ok := x.skipElements[tagName2]; ok && !tagClosed {
-				err = x.skipElement(tagName2)
+			if _, ok := x.skipElements[element.Name]; ok && !tagClosed {
+				err = x.skipElement(element.Name)
 				if err != nil {
 					result.Err = err
 					return result
@@ -245,18 +244,18 @@ func (x *XMLParser) getElementTree(tagName string, result *XMLElement) *XMLEleme
 				continue
 			}
 			if !tagClosed {
-				element = x.getElementTree(tagName2, element)
+				element = x.getElementTree(element)
 			}
 
-			if _, ok := result.Childs[tagName2]; ok {
-				result.Childs[tagName2] = append(result.Childs[tagName2], *element)
+			if _, ok := result.Childs[element.Name]; ok {
+				result.Childs[element.Name] = append(result.Childs[element.Name], *element)
 			} else {
 				var childs []XMLElement
 				childs = append(childs, *element)
 				if result.Childs == nil {
 					result.Childs = map[string][]XMLElement{}
 				}
-				result.Childs[tagName2] = childs
+				result.Childs[element.Name] = childs
 			}
 
 		} else {
@@ -302,7 +301,7 @@ func (x *XMLParser) skipElement(elname string) error {
 	}
 }
 
-func (x *XMLParser) startElement() (string, *XMLElement, bool, error) {
+func (x *XMLParser) startElement() (*XMLElement, bool, error) {
 
 	x.scratch.reset()
 
@@ -313,26 +312,27 @@ func (x *XMLParser) startElement() (string, *XMLElement, bool, error) {
 	// a tag have 3 forms * <abc > ** <abc type="foo" val="bar"/> *** <abc />
 	var attr string
 	var attrVal string
-	var tagName string
 	for {
 
 		cur, err = x.readByte()
 
 		if err != nil {
-			return "", nil, false, x.defaultError()
+			return nil, false, x.defaultError()
 		}
 
 		if x.isWS(cur) {
-			tagName = string(x.scratch.bytes())
+			result.Name = string(x.scratch.bytes())
 			x.scratch.reset()
 			goto search_close_tag
 		}
 
 		if cur == '>' {
 			if prev == '/' {
-				return string(x.scratch.bytes()[:len(x.scratch.bytes())-1]), result, true, nil
+				result.Name = string(x.scratch.bytes()[:len(x.scratch.bytes())-1])
+				return result, true, nil
 			}
-			return string(x.scratch.bytes()), result, false, nil
+			result.Name = string(x.scratch.bytes())
+			return result, false, nil
 		}
 		x.scratch.add(cur)
 		prev = cur
@@ -344,7 +344,7 @@ search_close_tag:
 		cur, err = x.readByte()
 
 		if err != nil {
-			return "", nil, false, x.defaultError()
+			return nil, false, x.defaultError()
 		}
 
 		if x.isWS(cur) {
@@ -359,17 +359,17 @@ search_close_tag:
 			cur, err = x.readByte()
 
 			if err != nil {
-				return "", nil, false, x.defaultError()
+				return nil, false, x.defaultError()
 			}
 
 			if !(cur == '"' || cur == '\'') {
-				return "", nil, false, x.defaultError()
+				return nil, false, x.defaultError()
 			}
 
 			attr = string(x.scratch.bytes())
 			attrVal, err = x.string(cur)
 			if err != nil {
-				return "", nil, false, x.defaultError()
+				return nil, false, x.defaultError()
 			}
 			result.Attrs[attr] = attrVal
 			x.scratch.reset()
@@ -378,9 +378,9 @@ search_close_tag:
 
 		if cur == '>' { //if tag name not found
 			if prev == '/' { //tag special close
-				return tagName, result, true, nil
+				return result, true, nil
 			}
-			return tagName, result, false, nil
+			return result, false, nil
 		}
 
 		x.scratch.add(cur)
