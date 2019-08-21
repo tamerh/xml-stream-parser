@@ -1,7 +1,8 @@
-## xml stream parser
+# xml stream parser
+
 xml-stream-parser is xml parser for GO. It is efficient to parse large xml data with streaming fashion.
 
-### Usage
+## Usage
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -29,10 +30,9 @@ xml-stream-parser is xml parser for GO. It is efficient to parse large xml data 
 </bookstore>
 ```
 
-<b>Stream</b> over books and journals
+**Stream** over books and journals
+
 ```go
-
-
 f, _ := os.Open("input.xml")
 br := bufio.NewReaderSize(f,65536)
 parser := xmlparser.NewXMLParser(br, "book", "journal")
@@ -44,30 +44,29 @@ for xml := range parser.Stream() {
       fmt.Println(xml.Childs["comments"][0].Childs["userComment"][0].InnerText)
    }
 }
-
 ```
 
-<b>Skip</b> tags for speed
+**Skip** tags for speed
+
 ```go
 parser := xmlparser.NewXMLParser(br, "book").SkipElements([]string{"price", "comments"})
 ```
 
-<b>Error</b> handlings
+**Error** handlings
+
 ```go
 for xml := range parser.Stream() {
-   if xml.Err !=nil { 
+   if xml.Err !=nil {
       // handle error
    }
 }
 ```
 
-<b>Progress</b> of parsing
+**Progress** of parsing
+
 ```go
 // total byte read to calculate the progress of parsing
 parser.TotalReadSize
 ```
-
-
-
 
 If you interested check also [json parser](https://github.com/tamerh/jsparser) which works similarly
