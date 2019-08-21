@@ -8,7 +8,7 @@ import (
 
 type XMLParser struct {
 	reader            *bufio.Reader
-	loopElement       string
+	loopElements      map[string]bool
 	resultChannel     chan *XMLElement
 	skipElements      map[string]bool
 	skipOuterElements bool
@@ -25,16 +25,22 @@ type XMLElement struct {
 	Err       error
 }
 
-func NewXMLParser(reader *bufio.Reader, loopElement string) *XMLParser {
+func NewXMLParser(reader *bufio.Reader, loopElements ...string) *XMLParser {
 
 	x := &XMLParser{
 		reader:        reader,
-		loopElement:   loopElement,
+		loopElements:  map[string]bool{},
 		resultChannel: make(chan *XMLElement, 256),
 		skipElements:  map[string]bool{},
 		scratch:       &scratch{data: make([]byte, 1024)},
 		scratch2:      &scratch{data: make([]byte, 1024)},
 	}
+
+	// Register loop elements
+	for _, e := range loopElements {
+		x.loopElements[e] = true
+	}
+
 	return x
 }
 
@@ -123,7 +129,7 @@ func (x *XMLParser) parse() {
 				return
 			}
 
-			if element.Name == x.loopElement {
+			if _, found := x.loopElements[element.Name]; found {
 				if tagClosed {
 					x.resultChannel <- element
 					continue

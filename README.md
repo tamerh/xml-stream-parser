@@ -1,5 +1,5 @@
-## xml stream parser 
-xml-stream-parser is xml parser for GO. It is efficient to parse large xml data with streaming fashion. 
+## xml stream parser
+xml-stream-parser is xml parser for GO. It is efficient to parse large xml data with streaming fashion.
 
 ### Usage
 
@@ -22,23 +22,29 @@ xml-stream-parser is xml parser for GO. It is efficient to parse large xml data 
          <userComment rating="4">Excellent overview of world literature.</userComment>
       </comments>
    </book>
+   <journal>
+      <title>Journal of XML parsing</title>
+      <issue>1</issue>
+   </journal>
 </bookstore>
 ```
 
-<b>Stream</b> over books
+<b>Stream</b> over books and journals
 ```go
 
 
 f, _ := os.Open("input.xml")
 br := bufio.NewReaderSize(f,65536)
-parser := xmlparser.NewXMLParser(br, "book")
+parser := xmlparser.NewXMLParser(br, "book", "journal")
 
 for xml := range parser.Stream() {
-	fmt.Println(xml.Childs["title"][0].InnerText)
-	fmt.Println(xml.Childs["comments"][0].Childs["userComment"][0].Attrs["rating"])
-	fmt.Println(xml.Childs["comments"][0].Childs["userComment"][0].InnerText)
+   fmt.Println(xml.Childs["title"][0].InnerText)
+   if xml.Name == "book" {
+      fmt.Println(xml.Childs["comments"][0].Childs["userComment"][0].Attrs["rating"])
+      fmt.Println(xml.Childs["comments"][0].Childs["userComment"][0].InnerText)
+   }
 }
-   
+
 ```
 
 <b>Skip</b> tags for speed
