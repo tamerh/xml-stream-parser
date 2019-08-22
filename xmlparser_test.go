@@ -6,18 +6,18 @@ import (
 	"testing"
 )
 
-func getparser(prop string) *XMLParser {
+func getparser(prop ...string) *XMLParser {
 
-	return getparserFile("sample.xml", prop)
+	return getparserFile("sample.xml", prop...)
 }
 
-func getparserFile(filename, prop string) *XMLParser {
+func getparserFile(filename string, prop ...string) *XMLParser {
 
 	file, _ := os.Open(filename)
 
 	br := bufio.NewReader(file)
 
-	p := NewXMLParser(br, prop)
+	p := NewXMLParser(br, prop...)
 
 	return p
 
@@ -230,6 +230,47 @@ func TestError(t *testing.T) {
 		}
 	}
 
+}
+
+func TestMultipleTags(t *testing.T) {
+	p := getparser("tag1", "tag2")
+
+	tagCount := map[string]int{}
+	for xml := range p.Stream() {
+		if xml.Name != "tag1" && xml.Name != "tag2" {
+			t.Errorf("Only 'tag1' and 'tag2' expected, but '%s' returned", xml.Name)
+		}
+		tagCount[xml.Name]++
+	}
+
+	if tagCount["tag1"] != 2 {
+		t.Errorf("There should be 2 parsed 'tag1', but %d found", tagCount["tag1"])
+	}
+	if tagCount["tag2"] != 2 {
+		t.Errorf("There should be 2 parsed 'tag2', but %d found", tagCount["tag2"])
+	}
+}
+
+func TestMultipleTagsNested(t *testing.T) {
+	p := getparser("tag1", "tag11")
+
+	tagCount := map[string]int{}
+	for xml := range p.Stream() {
+		if xml.Name != "tag1" && xml.Name != "tag11" {
+			t.Errorf("Only 'tag1' and 'tag11' expected, but '%s' returned", xml.Name)
+		}
+		tagCount[xml.Name]++
+	}
+
+	if tagCount["tag1"] != 2 {
+		t.Errorf("There should be 2 parsed 'tag1', but %d found", tagCount["tag1"])
+	}
+	if tagCount["tag11"] != 1 {
+		if tagCount["tag11"] == 4 {
+			t.Errorf("There should be only 1 parsed 'tag11', but 'tag11' nested under 'tag1' were parsed too")
+		}
+		t.Errorf("There should be 1 parsed 'tag11', but %d found", tagCount["tag11"])
+	}
 }
 
 func Benchmark1(b *testing.B) {
