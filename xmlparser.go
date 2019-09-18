@@ -163,11 +163,18 @@ func (element *XMLElement) GetValueIntDeep(xpath string) int {
 	return int(i)
 }
 func (element *XMLElement) GetValueDeep(xpath string) string {
-	values := element.GetAllNodes(xpath)
-	if len(values) == 0 {
-		return ""
+	xpaths := strings.SplitN(xpath, ".", 2)
+	if len(xpaths) > 1 {
+		paths := xpaths[1]
+		nodes := element.GetNodes(xpaths[0])
+		for _, node := range nodes {
+			v := node.GetValueDeep(paths)
+			if v != "" {
+				return v
+			}
+		}
 	}
-	return values[0].GetValue(".")
+	return element.GetValue(xpaths[0])
 }
 func (element *XMLElement) pathIndex(path string) (string, int) {
 	indexes := strings.Split(path, "[")
