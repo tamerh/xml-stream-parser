@@ -150,6 +150,25 @@ func (element *XMLElement) GetValue(xpath string) string {
 	}
 	return node.Attrs[attr]
 }
+func (element *XMLElement) GetValueF64Deep(xpath string) float64 {
+	v := element.GetValueDeep(xpath)
+	f := 0.00
+	if t, err := strconv.ParseFloat(v, 64); err == nil {
+		f = t
+	}
+	return f
+}
+func (element *XMLElement) GetValueIntDeep(xpath string) int {
+	i := element.GetValueF64Deep(xpath)
+	return int(i)
+}
+func (element *XMLElement) GetValueDeep(xpath string) string {
+	values := element.GetAllNodes(xpath)
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0].GetValue(".")
+}
 func (element *XMLElement) pathIndex(path string) (string, int) {
 	indexes := strings.Split(path, "[")
 	path = indexes[0]

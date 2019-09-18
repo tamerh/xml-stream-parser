@@ -331,6 +331,23 @@ func TestGetValueNumeric(t *testing.T) {
 		}
 	}
 }
+func TestGetValueDeep(t *testing.T) {
+	p := getparser("examples")
+	for xml := range p.Stream() {
+		i := xml.GetValueIntDeep("numericDeep.deep.int")
+		if i != 2 {
+			t.Errorf("numericDeep.deep.int doesn´t match with expected \n\t Expected: %d \n\t Found: %d", 2, i)
+		}
+		f := xml.GetValueF64Deep("numericDeep.deep.float")
+		if f != 1.2 {
+			t.Errorf("numericDeep.deep.float doesn´t match with expected \n\t Expected: %f \n\t Found: %f", 1.2, f)
+		}
+		v := xml.GetValueDeep("father.son.grandson")
+		if v != "grandson111" {
+			t.Errorf("father.son.grandson Deep search doesn´t match with expected \n\t Expected: %s \n\t Found: %s", "grandson111", v)
+		}
+	}
+}
 func Benchmark1(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {

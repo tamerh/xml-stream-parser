@@ -6,6 +6,12 @@ xml-stream-parser is xml parser for GO. It is efficient to parse large xml data 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <bookstore>
+   <book isbn="AAA">
+      <title>20 Love poems and a song of dispair</title>
+      <price>12.95</price>
+      <comments>
+      </comments>
+   </book>
    <book isbn="XXX">
       <title>The Iliad and The Odyssey</title>
       <price>12.95</price>
@@ -82,7 +88,12 @@ intValue = xml.GetValueInt("comments[1].userComment@rating")
 intValue = xml.GetValueInt("comments.userComment[1]@rating")
 float64Value = xml.GetValueF64("price")
 ```
-These values will be 0 if the value of the node is not numeric.
+These values will be 0 if the value of the node is not numeric.<br/>
+There is an option to get the value of a node from a path diving in each node of that path until arrive to the goal, for example doing:
+```
+comment = bookstore.GetValueDeep("book.comments.userComment")
+```
+it will return `Best translation I've read.` because is the first instance which has the complete path. `GetValueIntDeep` and `GetValueF64Deep` are too valid.
 <b>Using GetNodes and GetNode</b> function from a XMLElement instance:
 ```
 singleNode = xml.GetNode("comments.userComment")

@@ -37,7 +37,9 @@
         <tag4>SkipTag</tag4>
     </skipOutsideTag>
     <quotetest att1='test' att2='test"' att3="test'"/>
+    <father type="father0"></father>
     <father type="father1">
+        <son type="son01"></son>
         <son type="son11">
             <grandson>grandson111</grandson>
             <grandson>grandson112</grandson>
@@ -63,4 +65,19 @@
         <int realInt="9">int</int>
         <float>39.9</float>
     </numeric>
+    <numericDeep>
+        <deep></deep>
+        <deep>
+           <float>1.2</float>
+        </deep>
+    </numericDeep>
+    <numericDeep>
+        <deep>
+           <float>2.1</float>
+        </deep>
+        <deep>
+            <int>2</int>
+           <float>2.2</float>
+        </deep>
+    </numericDeep>
 </examples>
