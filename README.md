@@ -76,6 +76,13 @@ attValue = xml.GetValue("comments[1].userComment@rating")
 attValue = xml.GetValue("comments.userComment[1]@rating")
 attValue = xml.GetValue("@isbn")
 ```
+If the value of the nodes are numeric we can use functions which allow get them converted to the numeric values:
+```
+intValue = xml.GetValueInt("comments[1].userComment@rating")
+intValue = xml.GetValueInt("comments.userComment[1]@rating")
+float64Value = xml.GetValueF64("price")
+```
+These values will be 0 if the value of the node is not numeric.
 <b>Using GetNodes and GetNode</b> function from a XMLElement instance:
 ```
 singleNode = xml.GetNode("comments.userComment")

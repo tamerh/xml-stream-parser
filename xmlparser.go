@@ -116,6 +116,18 @@ func (element *XMLElement) GetNode(xpath string) XMLElement {
 	}
 	return XMLElement{}
 }
+func (element *XMLElement) GetValueF64(xpath string) float64 {
+	v := element.GetValue(xpath)
+	f := 0.00
+	if t, err := strconv.ParseFloat(v, 64); err == nil {
+		f = t
+	}
+	return f
+}
+func (element *XMLElement) GetValueInt(xpath string) int {
+	i := element.GetValueF64(xpath)
+	return int(i)
+}
 func (element *XMLElement) GetValue(xpath string) string {
 	if xpath == "." {
 		return element.InnerText

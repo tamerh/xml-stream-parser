@@ -304,7 +304,33 @@ func TestGetValue(t *testing.T) {
 	}
 
 }
-
+func TestGetValueNumeric(t *testing.T) {
+	var i int
+	var f float64
+	p := getparser("examples")
+	for xml := range p.Stream() {
+		i = xml.GetValueInt("numeric.int")
+		if i != 8 {
+			t.Errorf("numeric.int doesn´t match with expected \n\t Expected: %d \n\t Found: %d", 8, i)
+		}
+		i = xml.GetValueInt("numeric.int[1]")
+		if i != 18 {
+			t.Errorf("numeric.int[1] doesn´t match with expected \n\t Expected: %d \n\t Found: %d", 18, i)
+		}
+		i = xml.GetValueInt("numeric.int[2]")
+		if i != 0 {
+			t.Errorf("numeric.int[2] doesn´t match with expected \n\t Expected: %d \n\t Found: %d", 0, i)
+		}
+		i = xml.GetValueInt("numeric.int[2]@realInt")
+		if i != 9 {
+			t.Errorf("numeric.int[2]@realInt doesn´t match with expected \n\t Expected: %d \n\t Found: %d", 9, i)
+		}
+		f = xml.GetValueF64("numeric.float")
+		if f != 39.9 {
+			t.Errorf("numeric.float doesn´t match with expected \n\t Expected: %f \n\t Found: %f", 39.9, f)
+		}
+	}
+}
 func Benchmark1(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {

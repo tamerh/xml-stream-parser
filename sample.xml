@@ -57,4 +57,10 @@
             <grandson>grandson212</grandson>
         </son>
     </father>
+    <numeric>
+        <int>8</int>
+        <int>18.6</int>
+        <int realInt="9">int</int>
+        <float>39.9</float>
+    </numeric>
 </examples>
