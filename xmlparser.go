@@ -12,17 +12,10 @@ type XMLParser struct {
 	resultChannel     chan *XMLElement
 	skipElements      map[string]bool
 	skipOuterElements bool
+	xpathEnabled      bool
 	scratch           *scratch
 	scratch2          *scratch
 	TotalReadSize     uint64
-}
-
-type XMLElement struct {
-	Name      string
-	Attrs     map[string]string
-	InnerText string
-	Childs    map[string][]XMLElement
-	Err       error
 }
 
 func NewXMLParser(reader *bufio.Reader, loopElements ...string) *XMLParser {
@@ -60,6 +53,13 @@ func (x *XMLParser) SkipElements(skipElements []string) *XMLParser {
 func (x *XMLParser) SkipOuterElements() *XMLParser {
 
 	x.skipOuterElements = true
+	return x
+
+}
+
+func (x *XMLParser) EnableXpath() *XMLParser {
+
+	x.xpathEnabled = true
 	return x
 
 }
@@ -253,8 +253,15 @@ func (x *XMLParser) getElementTree(result *XMLElement) *XMLElement {
 				element = x.getElementTree(element)
 			}
 
+			if x.xpathEnabled {
+				element.parent = result
+			}
+
 			if _, ok := result.Childs[element.Name]; ok {
 				result.Childs[element.Name] = append(result.Childs[element.Name], *element)
+				if x.xpathEnabled {
+					result.childs = append(result.childs, element)
+				}
 			} else {
 				var childs []XMLElement
 				childs = append(childs, *element)
@@ -262,6 +269,11 @@ func (x *XMLParser) getElementTree(result *XMLElement) *XMLElement {
 					result.Childs = map[string][]XMLElement{}
 				}
 				result.Childs[element.Name] = childs
+
+				if x.xpathEnabled {
+					result.childs = append(result.childs, element)
+				}
+
 			}
 
 		} else {
@@ -378,6 +390,9 @@ search_close_tag:
 				return nil, false, x.defaultError()
 			}
 			result.Attrs[attr] = attrVal
+			if x.xpathEnabled {
+				result.attrs = append(result.attrs, &xmlAttr{name: attr, value: attrVal})
+			}
 			x.scratch.reset()
 			continue
 		}

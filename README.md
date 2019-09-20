@@ -69,4 +69,30 @@ for xml := range parser.Stream() {
 parser.TotalReadSize
 ```
 
+**Xpath** query 
+```go
+
+parser := xmlparser.NewXMLParser(bufreader, "bookstore").EnableXpath()
+
+for xml := range p.Stream() {
+   // select books 
+   xml.SelectElements("//book")
+   xml.SelectElements("./book")
+   xml.SelectElements("book")
+   // select titles
+   xml.SelectElements("./book/title")
+   // select book with price condition
+   xml.SelectElements("//book[price>=20.95]"))
+   //comments with rating 4
+   xml.SelectElements("//book/comments/userComment[@rating='4']")
+}
+// for evaluate function or reuse existing xpath expression
+// sum of all the book price
+expr, err := p.CompileXpath("sum(//book/price)")
+price := expr.Evaluate(p.CreateXPathNavigator(xml)).(float64)
+
+```
+xpath functionality implemented via [xpath](https://github.com/antchfx/xpath) library check more 
+examples in its documentation
+
 If you interested check also [json parser](https://github.com/tamerh/jsparser) which works similarly

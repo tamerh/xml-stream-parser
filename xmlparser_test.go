@@ -2,7 +2,9 @@ package xmlparser
 
 import (
 	"bufio"
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -273,6 +275,89 @@ func TestMultipleTagsNested(t *testing.T) {
 	}
 }
 
+func TestXpath(t *testing.T) {
+	xmlDoc := `<?xml version="1.0" encoding="UTF-8"?>
+	<bookstore>
+		 <book id="bk101">
+				<title>The Iliad and The Odyssey</title>
+				<price>12.95</price>
+				<comments>
+					 <userComment rating="4">Best translation I've read.</userComment>
+					 <userComment rating="2">I like other versions better.</userComment>
+				</comments>
+		 </book>
+		 <book id="bk102">
+				<title>Anthology of World Literature</title>
+				<price>24.95</price>
+				<comments>
+					 <userComment rating="3">Needs more modern literature.</userComment>
+					 <userComment rating="4">Excellent overview of world literature.</userComment>
+				</comments>
+		 </book>
+		 <journal>
+				<title>Journal of XML parsing</title>
+				<issue>1</issue>
+		 </journal>
+	</bookstore>`
+
+	sreader := strings.NewReader(xmlDoc)
+
+	bufreader := bufio.NewReader(sreader)
+
+	p := NewXMLParser(bufreader, "bookstore").EnableXpath()
+
+	for xml := range p.Stream() {
+
+		if list, err := xml.SelectElements("//book"); len(list) != 2 || err != nil {
+			t.Fatal("//book != 2")
+		}
+
+		if list, err := xml.SelectElements("./book"); len(list) != 2 || err != nil {
+			t.Fatal("./book != 2")
+		}
+
+		if list, err := xml.SelectElements("book"); len(list) != 2 || err != nil {
+			t.Fatal("book != 2")
+		}
+
+		list, err := xml.SelectElements("./book/title")
+		if len(list) != 2 || err != nil {
+			t.Fatal("book != 2")
+		}
+
+		title, err := xml.SelectElement("./book/title")
+		if err != nil && title.InnerText != "The Iliad and The Odyssey" {
+			t.Fatal("./book/title")
+		}
+
+		el, err := xml.SelectElement("//book[@id='bk101']")
+		if el == nil || err != nil {
+			t.Fatal("//book[@id='bk101] is not found")
+		}
+		list, err = xml.SelectElements("//book[price>=10.95]")
+		if list == nil || err != nil || len(list) != 2 {
+			t.Fatal("//book[price>=10.95]")
+		}
+
+		list, err = xml.SelectElements("//book/comments/userComment[@rating='2']")
+		if len(list) != 1 || err != nil {
+			t.Fatal("//book/comments/userComment[@rating='2']")
+		}
+
+		// all books total price
+		expr, err := p.CompileXpath("sum(//book/price)")
+		if err != nil {
+			t.Fatal("sum(//book/price) xpath expression compile error")
+		}
+		price := expr.Evaluate(p.CreateXPathNavigator(xml)).(float64)
+
+		if fmt.Sprintf("%.2f", price) != "37.90" {
+			t.Fatal("invalid total price->", price)
+		}
+
+	}
+}
+
 func Benchmark1(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
@@ -287,6 +372,17 @@ func Benchmark2(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		p := getparser("tag4")
+		for xml := range p.Stream() {
+			nothing(xml)
+		}
+	}
+
+}
+
+func Benchmark3(b *testing.B) {
+
+	for n := 0; n < b.N; n++ {
+		p := getparser("tag4").EnableXpath()
 		for xml := range p.Stream() {
 			nothing(xml)
 		}
