@@ -3,6 +3,7 @@ package xmlparser
 import (
 	"bufio"
 	"fmt"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -340,6 +341,17 @@ func (x *XMLParser) startElement() (*XMLElement, bool, error) {
 
 		if x.isWS(cur) {
 			result.Name = string(x.scratch.bytes())
+
+			if x.xpathEnabled {
+				names := strings.Split(result.Name, ":")
+				if len(names) > 1 {
+					result.prefix = names[0]
+					result.localName = names[1]
+				} else {
+					result.localName = names[0]
+				}
+			}
+
 			x.scratch.reset()
 			goto search_close_tag
 		}
@@ -347,9 +359,31 @@ func (x *XMLParser) startElement() (*XMLElement, bool, error) {
 		if cur == '>' {
 			if prev == '/' {
 				result.Name = string(x.scratch.bytes()[:len(x.scratch.bytes())-1])
+
+				if x.xpathEnabled {
+					names := strings.Split(result.Name, ":")
+					if len(names) > 1 {
+						result.prefix = names[0]
+						result.localName = names[1]
+					} else {
+						result.localName = names[0]
+					}
+				}
+
 				return result, true, nil
 			}
 			result.Name = string(x.scratch.bytes())
+
+			if x.xpathEnabled {
+				names := strings.Split(result.Name, ":")
+				if len(names) > 1 {
+					result.prefix = names[0]
+					result.localName = names[1]
+				} else {
+					result.localName = names[0]
+				}
+			}
+
 			return result, false, nil
 		}
 		x.scratch.add(cur)

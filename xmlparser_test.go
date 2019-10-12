@@ -2,6 +2,7 @@ package xmlparser
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -356,6 +357,55 @@ func TestXpath(t *testing.T) {
 		}
 
 	}
+}
+
+func TestXpathNS(t *testing.T) {
+
+	br := bufio.NewReader(bytes.NewReader([]byte(`
+		<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+		<soap:Body>
+			<soap:BodyNest1>
+				<soap:BodyNest2>
+				</soap:BodyNest2>
+			</soap:BodyNest1>
+		</soap:Body>
+
+		<soap:Body>
+		<soap:BodyNest1>
+			<soap:BodyNest3 nestatt3="nestatt3val">
+			</soap:BodyNest3>
+		</soap:BodyNest1>
+	</soap:Body>
+
+		</soap:Envelope>
+	`)))
+
+	str := NewXMLParser(br, "soap:Envelope").EnableXpath()
+	for xml := range str.Stream() {
+
+		if list, err := xml.SelectElements("soap:Body"); len(list) != 2 || err != nil {
+			t.Fatal("soap:Body != 2")
+		}
+
+		if list, err := xml.SelectElements("./soap:Body/soap:BodyNest1"); len(list) != 2 || err != nil {
+			t.Fatal("/soap:Body/soap:BodyNest1 != 2")
+		}
+
+		if list, err := xml.SelectElements("./soap:Body/soap:BodyNest1/soap:BodyNest2"); len(list) != 1 || err != nil {
+			t.Fatal("/soap:Body/soap:BodyNest1/soap:BodyNest2 != 1")
+		}
+
+		list, err := xml.SelectElements("./soap:Body/soap:BodyNest1/soap:BodyNest3")
+		if len(list) != 1 || err != nil {
+			t.Fatal("/soap:Body/soap:BodyNest1/soap:BodyNest3 != 1")
+		}
+
+		if list[0].Attrs["nestatt3"] != "nestatt3val" {
+			t.Fatal("nestatt3 attiribute test failed")
+		}
+
+	}
+
 }
 
 func Benchmark1(b *testing.B) {

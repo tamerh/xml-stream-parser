@@ -7,9 +7,11 @@ type XMLElement struct {
 	Childs    map[string][]XMLElement
 	Err       error
 	// filled when xpath enabled
-	childs []*XMLElement
-	parent *XMLElement
-	attrs  []*xmlAttr
+	childs    []*XMLElement
+	parent    *XMLElement
+	attrs     []*xmlAttr
+	localName string
+	prefix    string
 }
 
 type xmlAttr struct {

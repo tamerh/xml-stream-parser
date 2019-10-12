@@ -78,12 +78,15 @@ func (x *XmlNodeNavigator) LocalName() string {
 	if x.attr != -1 {
 		return x.curr.attrs[x.attr].name
 	}
-	return x.curr.Name
+
+	return x.curr.localName
 
 }
 
 func (x *XmlNodeNavigator) Prefix() string {
-	return ""
+
+	return x.curr.prefix
+
 }
 
 func (x *XmlNodeNavigator) Value() string {
