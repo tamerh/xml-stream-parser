@@ -69,7 +69,7 @@ for xml := range parser.Stream() {
 parser.TotalReadSize
 ```
 
-**Xpath** query (for now in master branch)
+**Xpath** query (for now this feature is not tagged)
 ```go
 
 parser := xmlparser.NewXMLParser(bufreader, "bookstore").EnableXpath()
