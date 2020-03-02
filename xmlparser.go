@@ -145,7 +145,7 @@ func (x *XMLParser) parse() {
 					continue
 				}
 
-				if _, only := x.attrOnlyElements[element.Name]; !only {
+				if _, ok := x.attrOnlyElements[element.Name]; !ok {
 					element = x.getElementTree(element)
 				}
 				x.resultChannel <- element
