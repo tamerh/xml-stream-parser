@@ -52,7 +52,7 @@ for xml := range parser.Stream() {
 parser := xmlparser.NewXMLParser(br, "book").SkipElements([]string{"price", "comments"})
 ```
 
-**OnlyAttributes** get only attributes
+**Attributes** only
 
 ```go
 parser := xmlparser.NewXMLParser(br, "bookstore", "book").ParseAttributesOnly("bookstore")
