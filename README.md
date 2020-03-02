@@ -6,7 +6,7 @@ xml-stream-parser is xml parser for GO. It is efficient to parse large xml data 
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<bookstore>
+<bookstore number="2" loc="273456">
    <book>
       <title>The Iliad and The Odyssey</title>
       <price>12.95</price>
@@ -47,6 +47,17 @@ for xml := range parser.Stream() {
 ```
 
 **Skip** tags for speed
+
+```go
+parser := xmlparser.NewXMLParser(br, "book").SkipElements([]string{"price", "comments"})
+```
+
+**OnlyAttributes** tags for speed
+You can user *ParseAttributesOnly* to get only attributes form tags
+```go
+parser := xmlparser.NewXMLParser(br, "bookstore", "book").ParseAttributesOnly("bookstore")
+```
+
 
 ```go
 parser := xmlparser.NewXMLParser(br, "book").SkipElements([]string{"price", "comments"})
