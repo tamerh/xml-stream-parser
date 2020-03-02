@@ -52,15 +52,10 @@ for xml := range parser.Stream() {
 parser := xmlparser.NewXMLParser(br, "book").SkipElements([]string{"price", "comments"})
 ```
 
-**OnlyAttributes** tags for speed
-You can user *ParseAttributesOnly* to get only attributes form tags
+**OnlyAttributes** get only attributes
+
 ```go
 parser := xmlparser.NewXMLParser(br, "bookstore", "book").ParseAttributesOnly("bookstore")
-```
-
-
-```go
-parser := xmlparser.NewXMLParser(br, "book").SkipElements([]string{"price", "comments"})
 ```
 
 **Error** handlings
