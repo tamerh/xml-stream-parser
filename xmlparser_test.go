@@ -50,7 +50,7 @@ func TestBasics(t *testing.T) {
 		panic("Test failed")
 	}
 
-	if results[0].Childs["tag11"][0].InnerText != "Hello                                    你好            Gür" {
+	if results[0].Childs["tag11"][0].InnerText != "Hello                                                你好            Gür" {
 		panic("Test failed")
 	}
 
@@ -406,6 +406,30 @@ func TestXpathNS(t *testing.T) {
 
 	}
 
+}
+
+func TestAttrOnly(t *testing.T) {
+	p := getparser("examples", "tag1").ParseAttributesOnly("examples")
+	for xml := range p.Stream() {
+		if xml.Err != nil {
+			t.Fatal(xml.Err)
+		}
+		if xml.Name == "examples" {
+			if len(xml.Childs) != 0 {
+				t.Fatal("Childs not empty for ParseAttributesOnly tags")
+			}
+			fmt.Printf("Name: \t%s\n", xml.Name)
+			fmt.Printf("Attrs: \t%v\n\n", xml.Attrs)
+		}
+		if xml.Name == "tag1" {
+			if len(xml.Childs) == 0 {
+				t.Fatal("Childs not empty for ParseAttributesOnly tags")
+			}
+			fmt.Printf("Name: \t%s\n", xml.Name)
+			fmt.Printf("Attrs: \t%v\n", xml.Attrs)
+			fmt.Printf("Childs: %v\n", xml.Childs)
+		}
+	}
 }
 
 func Benchmark1(b *testing.B) {

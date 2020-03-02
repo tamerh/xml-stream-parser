@@ -12,6 +12,7 @@ type XMLParser struct {
 	loopElements      map[string]bool
 	resultChannel     chan *XMLElement
 	skipElements      map[string]bool
+	attrOnlyElements  map[string]bool
 	skipOuterElements bool
 	xpathEnabled      bool
 	scratch           *scratch
@@ -22,12 +23,13 @@ type XMLParser struct {
 func NewXMLParser(reader *bufio.Reader, loopElements ...string) *XMLParser {
 
 	x := &XMLParser{
-		reader:        reader,
-		loopElements:  map[string]bool{},
-		resultChannel: make(chan *XMLElement, 256),
-		skipElements:  map[string]bool{},
-		scratch:       &scratch{data: make([]byte, 1024)},
-		scratch2:      &scratch{data: make([]byte, 1024)},
+		reader:           reader,
+		loopElements:     map[string]bool{},
+		attrOnlyElements: map[string]bool{},
+		resultChannel:    make(chan *XMLElement, 256),
+		skipElements:     map[string]bool{},
+		scratch:          &scratch{data: make([]byte, 1024)},
+		scratch2:         &scratch{data: make([]byte, 1024)},
 	}
 
 	// Register loop elements
@@ -47,6 +49,13 @@ func (x *XMLParser) SkipElements(skipElements []string) *XMLParser {
 	}
 	return x
 
+}
+
+func (x *XMLParser) ParseAttributesOnly(loopElements ...string) *XMLParser {
+	for _, e := range loopElements {
+		x.attrOnlyElements[e] = true
+	}
+	return x
 }
 
 // by default skip elements works for stream elements childs
@@ -136,7 +145,9 @@ func (x *XMLParser) parse() {
 					continue
 				}
 
-				element = x.getElementTree(element)
+				if _, only := x.attrOnlyElements[element.Name]; !only {
+					element = x.getElementTree(element)
+				}
 				x.resultChannel <- element
 				if element.Err != nil {
 					return

@@ -7,9 +7,9 @@
 <!ELEMENT para (#PCDATA)>
 ]>
 <!-- Comment at top after declarations -->
-<examples>
+<examples att1="ex1" att2="ex2">
     <tag1 att1="<att0>" att2="att0">
-        <tag11 att1="att0">Hello                                    <![CDATA[你好]]>            <!-- comment --><![CDATA[Gür]]></tag11>
+        <tag11 att1="att0">Hello                                                <![CDATA[你好]]>            <!-- comment --><![CDATA[Gür]]></tag11>
         <tag11 att1="att0">InnerText111</tag11>
         <tag12 att1="att0"/>
         <tag13>InnerText13</tag13>
