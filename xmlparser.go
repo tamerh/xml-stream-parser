@@ -524,7 +524,6 @@ func (x *XMLParser) isCDATA() (bool, []byte, error) {
 	}
 
 	if b[0] != '!' {
-		x.unreadByte()
 		return false, nil, nil
 	}
 
