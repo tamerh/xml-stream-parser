@@ -178,7 +178,7 @@ func (x *XMLParser) getElementTree(result *XMLElement) *XMLElement {
 		return result
 	}
 
-	var cur byte
+	var cur []byte
 	var next byte
 	var err error
 	var element *XMLElement
@@ -188,108 +188,104 @@ func (x *XMLParser) getElementTree(result *XMLElement) *XMLElement {
 
 	for {
 
-		cur, err = x.readByte()
+		cur, err = x.readBytes('<')
 
 		if err != nil {
 			result.Err = err
 			return result
 		}
 
-		if cur == '<' {
+		x.scratch2.addall(cur)
 
-			iscdata, cddata, err := x.isCDATA()
+		iscdata, cddata, err := x.isCDATA()
 
-			if err != nil {
-				result.Err = err
-				return result
+		if err != nil {
+			result.Err = err
+			return result
+		}
+		if iscdata {
+			for _, cd := range cddata {
+				x.scratch2.add(cd)
 			}
-			if iscdata {
-				for _, cd := range cddata {
-					x.scratch2.add(cd)
-				}
-				continue
-			}
+			continue
+		}
 
-			iscomment, err = x.isComment()
+		iscomment, err = x.isComment()
 
-			if err != nil {
-				result.Err = err
-				return result
-			}
+		if err != nil {
+			result.Err = err
+			return result
+		}
 
-			if iscomment {
-				continue
-			}
+		if iscomment {
+			continue
+		}
 
-			next, err = x.readByte()
+		next, err = x.readByte()
 
-			if err != nil {
-				result.Err = err
-				return result
-			}
+		if err != nil {
+			result.Err = err
+			return result
+		}
 
-			if next == '/' { // close tag
-				tag, err := x.closeTagName()
-
-				if err != nil {
-					result.Err = err
-					return result
-				}
-
-				if tag == result.Name {
-					if len(result.Childs) == 0 {
-						result.InnerText = string(x.scratch2.bytes())
-					}
-					return result
-				}
-			} else {
-				x.unreadByte()
-			}
-
-			element, tagClosed, err = x.startElement()
+		if next == '/' { // close tag
+			tag, err := x.closeTagName()
 
 			if err != nil {
 				result.Err = err
 				return result
 			}
 
-			if _, ok := x.skipElements[element.Name]; ok && !tagClosed {
-				err = x.skipElement(element.Name)
-				if err != nil {
-					result.Err = err
-					return result
+			if tag == result.Name {
+				if len(result.Childs) == 0 {
+					result.InnerText = string(x.scratch2.bytes())
 				}
-				continue
+				return result
 			}
-			if !tagClosed {
-				element = x.getElementTree(element)
+		} else {
+			x.unreadByte()
+		}
+
+		element, tagClosed, err = x.startElement()
+
+		if err != nil {
+			result.Err = err
+			return result
+		}
+
+		if _, ok := x.skipElements[element.Name]; ok && !tagClosed {
+			err = x.skipElement(element.Name)
+			if err != nil {
+				result.Err = err
+				return result
 			}
+			continue
+		}
+		if !tagClosed {
+			element = x.getElementTree(element)
+		}
+
+		if x.xpathEnabled {
+			element.parent = result
+		}
+
+		if _, ok := result.Childs[element.Name]; ok {
+			result.Childs[element.Name] = append(result.Childs[element.Name], *element)
+			if x.xpathEnabled {
+				result.childs = append(result.childs, element)
+			}
+		} else {
+			var childs []XMLElement
+			childs = append(childs, *element)
+			if result.Childs == nil {
+				result.Childs = map[string][]XMLElement{}
+			}
+			result.Childs[element.Name] = childs
 
 			if x.xpathEnabled {
-				element.parent = result
+				result.childs = append(result.childs, element)
 			}
 
-			if _, ok := result.Childs[element.Name]; ok {
-				result.Childs[element.Name] = append(result.Childs[element.Name], *element)
-				if x.xpathEnabled {
-					result.childs = append(result.childs, element)
-				}
-			} else {
-				var childs []XMLElement
-				childs = append(childs, *element)
-				if result.Childs == nil {
-					result.Childs = map[string][]XMLElement{}
-				}
-				result.Childs[element.Name] = childs
-
-				if x.xpathEnabled {
-					result.childs = append(result.childs, element)
-				}
-
-			}
-
-		} else {
-			x.scratch2.add(cur)
 		}
 
 	}
@@ -297,35 +293,31 @@ func (x *XMLParser) getElementTree(result *XMLElement) *XMLElement {
 
 func (x *XMLParser) skipElement(elname string) error {
 
-	var c byte
 	var next byte
 	var err error
 	var curname string
 	for {
 
-		c, err = x.readByte()
+		_, err = x.readBytes('<')
 
 		if err != nil {
 			return err
 		}
-		if c == '<' {
 
-			next, err = x.readByte()
+		next, err = x.readByte()
 
+		if err != nil {
+			return err
+		}
+
+		if next == '/' {
+			curname, err = x.closeTagName()
 			if err != nil {
 				return err
 			}
-
-			if next == '/' {
-				curname, err = x.closeTagName()
-				if err != nil {
-					return err
-				}
-				if curname == elname {
-					return nil
-				}
+			if curname == elname {
+				return nil
 			}
-
 		}
 
 	}
@@ -754,22 +746,21 @@ skipDecleration:
 func (x *XMLParser) closeTagName() (string, error) {
 
 	x.scratch.reset()
-	var c byte
+	var c []byte
 	var err error
-	for {
-		c, err = x.readByte()
 
-		if err != nil {
-			return "", err
-		}
+	c, err = x.readBytes('>')
 
-		if c == '>' {
-			return string(x.scratch.bytes()), nil
-		}
-		if !x.isWS(c) {
-			x.scratch.add(c)
+	if err != nil {
+		return "", err
+	}
+
+	for _, t := range c {
+		if !x.isWS(t) {
+			x.scratch.add(t)
 		}
 	}
+	return string(x.scratch.bytes()), nil
 }
 
 func (x *XMLParser) readByte() (byte, error) {
@@ -796,13 +787,30 @@ func (x *XMLParser) unreadByte() error {
 
 }
 
+// Returns a byte array up to but not including the delimeter byte
+func (x *XMLParser) readBytes(delim byte) ([]byte, error) {
+
+	bytes, err := x.reader.ReadBytes(delim)
+
+	x.TotalReadSize += uint64(len(bytes))
+
+	if err == nil {
+		bytes = bytes[:len(bytes)-1]
+	}
+	return bytes, err
+
+}
+
+var wsMap = [256]bool{
+	'\t': true,
+	'\n': true,
+	'\r': true,
+	' ':  true,
+}
+
 func (x *XMLParser) isWS(in byte) bool {
 
-	if in == ' ' || in == '\n' || in == '\t' || in == '\r' {
-		return true
-	}
-
-	return false
+	return wsMap[in]
 
 }
 
@@ -821,23 +829,14 @@ func (x *XMLParser) string(start byte) (string, error) {
 	x.scratch.reset()
 
 	var err error
-	var c byte
-	for {
+	var c []byte
 
-		c, err = x.readByte()
-		if err != nil {
-			if err != nil {
-				return "", err
-			}
-		}
-
-		if c == start {
-			return string(x.scratch.bytes()), nil
-		}
-
-		x.scratch.add(c)
-
+	c, err = x.readBytes(start)
+	if err != nil {
+		return "", err
 	}
+
+	return string(c), nil
 
 }
 
@@ -869,6 +868,16 @@ func (s *scratch) add(c byte) {
 
 	s.data[s.fill] = c
 	s.fill++
+}
+
+// append many bytes to scratch buffer
+func (s *scratch) addall(c []byte) {
+	for s.fill+len(c) > cap(s.data) {
+		s.grow()
+	}
+
+	copy(s.data[s.fill:s.fill+len(c)], c)
+	s.fill += len(c)
 }
 
 // append encoded rune to scratch buffer
