@@ -464,5 +464,19 @@ func Benchmark3(b *testing.B) {
 
 }
 
+// This represents a common use-case for this library:
+//
+// A root element with a repeating array of children, each of which
+// has lots of data with very little of it actually needing parsing.
+func BenchmarkSkip(b *testing.B) {
+
+	for n := 0; n < b.N; n++ {
+		p := getparserFile("sample2.xml", "tag").SkipElements([]string{"not-interesting"})
+		for xml := range p.Stream() {
+			nothing(xml)
+		}
+	}
+}
+
 func nothing(...interface{}) {
 }
