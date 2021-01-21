@@ -75,7 +75,7 @@ for xml := range parser.Stream() {
 parser.TotalReadSize
 ```
 
-**Xpath** query (for now this feature is not tagged)
+**Xpath** query provides alternative to default fast access for different usecases 
 ```go
 
 parser := xmlparser.NewXMLParser(bufreader, "bookstore").EnableXpath()
