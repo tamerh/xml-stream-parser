@@ -18,8 +18,9 @@
     </tag1>
     <!-- some comments <> "" '' -->
     <tag1 att1="<att1>" att2="att1">
-        <tag11 att1="att1">InnerText2</tag11>
-        <tag12 att1="att1"/>
+        <tag11 att1= "att1">InnerText2</tag11>
+        <tag12 att1= 
+        "att1"/>
         <tag13>InnerText213</tag13>
         <tag14 />
     </tag1>
