@@ -425,6 +425,13 @@ search_close_tag:
 				return nil, false, x.defaultError()
 			}
 
+			for x.isWS(cur) {
+				cur, err = x.readByte()
+				if err != nil {
+					return nil, false, x.defaultError()
+				}
+			}
+
 			if !(cur == '"' || cur == '\'') {
 				return nil, false, x.defaultError()
 			}
@@ -842,7 +849,7 @@ func (x *XMLParser) string(start byte) (string, error) {
 }
 
 // scratch taken from
-//https://github.com/bcicen/jstream
+// https://github.com/bcicen/jstream
 type scratch struct {
 	data []byte
 	fill int
